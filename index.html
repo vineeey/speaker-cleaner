@@ -719,8 +719,12 @@ body {
   }
 
   /* ── Audio engine ──────────────────────────────────── */
-  function createAudioCtx() {
+  async function createAudioCtx() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Mobile browsers require an explicit resume() inside a user gesture
+    if (audioCtx.state === 'suspended') {
+      await audioCtx.resume();
+    }
   }
 
   function buildGraph(volume) {
@@ -781,7 +785,7 @@ body {
     stageAbort = false;
     setPlaying(true);
 
-    createAudioCtx();
+    await createAudioCtx();
 
     const volume     = +sliderVolume.value;
     const cycleSec   = +sliderCycleLen.value;
@@ -855,13 +859,20 @@ body {
   function finishPlayback() {
     stopFreqReadout();
 
-    // Ensure nodes are cleaned up
-    try { if (oscillator) { oscillator.stop(); oscillator.disconnect(); } } catch (_) {}
-    try { if (gainNode)   gainNode.disconnect(); } catch (_) {}
-    try { if (analyser)   analyser.disconnect(); } catch (_) {}
-    oscillator = null;
-    gainNode = null;
-    analyser = null;
+    // Ensure nodes are cleaned up (each in its own try/catch)
+    if (oscillator) {
+      try { oscillator.stop(); } catch (_) {}
+      try { oscillator.disconnect(); } catch (_) {}
+      oscillator = null;
+    }
+    if (gainNode) {
+      try { gainNode.disconnect(); } catch (_) {}
+      gainNode = null;
+    }
+    if (analyser) {
+      try { analyser.disconnect(); } catch (_) {}
+      analyser = null;
+    }
 
     if (audioCtx) {
       audioCtx.close().catch(() => {});
