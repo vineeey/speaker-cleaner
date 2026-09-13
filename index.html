@@ -340,6 +340,14 @@ body {
         <span class="preset-icon">⚡</span>Shock / Gunk
         <span class="preset-sub" style="color: var(--red);">Rapid heavy pulses</span>
       </button>
+      <button class="preset-btn" data-preset="jackhammer" id="preset-jackhammer" style="border-color: rgba(232,93,93,0.4);">
+        <span class="preset-icon">🔨</span>Jackhammer
+        <span class="preset-sub" style="color: var(--red);">Extreme rapid vibration</span>
+      </button>
+      <button class="preset-btn" data-preset="siren" id="preset-siren" style="border-color: rgba(167,139,250,0.4);">
+        <span class="preset-icon">🚨</span>Siren Sweep
+        <span class="preset-sub" style="color: var(--purple);">Fast resonance sweep</span>
+      </button>
     </div>
   </div>
 
@@ -497,6 +505,14 @@ body {
     shock: {
       earpiece: { start: 400,  end: 3000,  cycle: 0.3, wave: 'square' },
       bottom:   { start: 100,  end: 800,   cycle: 0.3, wave: 'square' },
+    },
+    jackhammer: {
+      earpiece: { start: 500,  end: 1500,  cycle: 0.05, wave: 'square' },
+      bottom:   { start: 100,  end: 300,   cycle: 0.05, wave: 'square' },
+    },
+    siren: {
+      earpiece: { start: 500,  end: 8000,  cycle: 1.5, wave: 'triangle' },
+      bottom:   { start: 100,  end: 10000, cycle: 1.5, wave: 'triangle' },
     },
   };
 
