@@ -437,7 +437,7 @@ body {
 </div>
 
 <!-- Silent MP3 to force iOS into 'playback' audio session (bypasses mute switch) -->
-<audio id="iosUnlockAudio" preload="auto"
+<audio id="iosUnlockAudio" preload="auto" loop
   src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqSAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqSAAAAAAAAAAAAAAAAAAAA"
   style="display:none"></audio>
 
@@ -539,14 +539,30 @@ body {
 
   const iosAudio = $('iosUnlockAudio');
 
-  /** Play the hidden <audio> MP3 to unlock iOS audio session */
-  function _unlockiOS() {
-    if (iosAudioPlayed) return;
-    iosAudioPlayed = true;
+  /** Play the hidden <audio> MP3 to keep background audio session alive */
+  function _startBgAudio() {
     if (iosAudio) {
       iosAudio.volume = 0.01;
       var p = iosAudio.play();
       if (p && p.catch) p.catch(function(){});
+    }
+    // Register media session so OS lock screen keeps it alive
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'Speaker Cleaner',
+        artist: 'Active',
+      });
+      navigator.mediaSession.playbackState = 'playing';
+    }
+  }
+
+  function _stopBgAudio() {
+    // Only pause if both cleaning and testing are stopped
+    if (!isPlaying && !testPlaying) {
+      if (iosAudio) iosAudio.pause();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     }
   }
 
@@ -562,7 +578,7 @@ body {
   }
 
   function ensureCtx() {
-    _unlockiOS();  // always try iOS <audio> unlock first
+    _startBgAudio();
     if (!ctx || ctx.state === 'closed') {
       ctx = new AudioCtx();
       ctxReady = false;
@@ -576,7 +592,7 @@ body {
   }
 
   function ensureTestCtx() {
-    _unlockiOS();
+    _startBgAudio();
     if (!testCtx || testCtx.state === 'closed') {
       testCtx = new AudioCtx();
       testCtxReady = false;
@@ -591,9 +607,10 @@ body {
 
   /* Pre-unlock on ANY first user interaction */
   function _preUnlock() {
-    _unlockiOS();
+    _startBgAudio();
     ensureCtx();
     ensureTestCtx();
+    _stopBgAudio(); // immediately stop since they didn't hit 'Start' yet
   }
   ['touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach(function(evt) {
     document.addEventListener(evt, _preUnlock, { once: true, passive: true });
@@ -850,6 +867,7 @@ body {
     if (analyser)   { try { analyser.disconnect(); } catch (_) {} analyser = null; }
     // Don't close ctx — keep it alive for next playback
     setPlaying(false);
+    _stopBgAudio();
     setStatus('Idle — select a mode and press Start', false);
     updateTargetLabel();
     currentStage = 0;
@@ -889,6 +907,7 @@ body {
     testNodes = [];
     if (testGain) { try { testGain.disconnect(); } catch (_) {} testGain = null; }
     testPlaying = null;
+    _stopBgAudio();
     testEarpiece.classList.remove('playing');
     testBottom.classList.remove('playing');
     testStopBtn.classList.remove('visible');
