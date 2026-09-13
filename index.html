@@ -859,10 +859,16 @@ body {
   const MELODIES = {
     earpiece: {
       notes: [
-        {hz:523,dur:.35},{hz:587,dur:.35},{hz:659,dur:.5},{hz:784,dur:.35},{hz:880,dur:.5},
-        {hz:784,dur:.35},{hz:659,dur:.5},{hz:523,dur:.7},
-        {hz:880,dur:.3},{hz:784,dur:.3},{hz:659,dur:.4},{hz:587,dur:.3},{hz:523,dur:.6},
-        {hz:659,dur:.35},{hz:784,dur:.5},{hz:1047,dur:.7},
+        {hz:1047,dur:.2},{hz:1047,dur:.2},{hz:1047,dur:.2},{hz:1568,dur:.4},
+        {hz:1047,dur:.2},{hz:1047,dur:.2},{hz:1047,dur:.2},{hz:1568,dur:.4},
+        {hz:523,dur:.15},{hz:659,dur:.15},{hz:784,dur:.15},{hz:1047,dur:.15},
+        {hz:1318,dur:.15},{hz:1568,dur:.15},{hz:2093,dur:.4},
+        {hz:1568,dur:.2},{hz:1318,dur:.2},{hz:1568,dur:.2},{hz:1318,dur:.2},
+        {hz:2093,dur:.3},{hz:2093,dur:.3},{hz:1047,dur:.5},
+        {hz:3136,dur:.1},{hz:3136,dur:.1},{hz:3136,dur:.1},{hz:3136,dur:.1},
+        {hz:3136,dur:.1},{hz:3136,dur:.1},{hz:3136,dur:.1},{hz:3136,dur:.1},
+        {hz:2093,dur:.2},{hz:1568,dur:.2},{hz:1318,dur:.2},{hz:1047,dur:.2},
+        {hz:784,dur:.2},{hz:659,dur:.2},{hz:523,dur:.4}
       ],
       harmonicRatio: 2, harmonicGain: 0.15,
     },
@@ -907,7 +913,7 @@ body {
     const c = testCtx;
     const melody = MELODIES[target];
     testGain = c.createGain();
-    testGain.gain.value = 0.35;
+    testGain.gain.value = 1.0;
     testGain.connect(c.destination);
 
     const now = c.currentTime;
