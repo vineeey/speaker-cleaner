@@ -6,7 +6,8 @@
 <meta name="description" content="Speaker Cleaner — play targeted sound patterns to vibrate dust, lint, or dried liquid out of your phone's speakers using the Web Audio API.">
 <title>Speaker Cleaner — Audio Sweep Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -27,17 +28,19 @@
   --red:        #E85D5D;
   --purple:     #A78BFA;
   --purple-dim: rgba(167,139,250,0.15);
-  --radius:     8px;
-  --font-ui:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:  'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-  --transition: 180ms ease;
+  --radius:     12px;
+  --font-ui:    'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+  --transition: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html { font-size: 15px; }
 
 body {
   font-family: var(--font-ui);
-  background: var(--bg);
+  background: linear-gradient(-45deg, #090a0f, #141124, #0d1a20, #090a0f);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   color: var(--text);
   min-height: 100vh;
   display: flex;
@@ -45,6 +48,11 @@ body {
   align-items: center;
   padding: 24px 16px 48px;
   -webkit-font-smoothing: antialiased;
+}
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* ── Header ───────────────────────────────────────── */
@@ -56,8 +64,11 @@ body {
 /* ── Panel ────────────────────────────────────────── */
 .panel {
   width: 100%; max-width: 560px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: rgba(23, 27, 36, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -94,12 +105,14 @@ body {
 .preset-btn {
   padding: 14px 8px 12px; font-family: var(--font-ui);
   font-size: 0.75rem; font-weight: 500; color: var(--text-dim);
-  background: var(--panel-alt); border: 1px solid var(--border);
+  background: rgba(28, 33, 48, 0.4); border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius); cursor: pointer;
   transition: all var(--transition); text-align: center; line-height: 1.35;
+  transform: translateY(0) scale(1);
 }
-.preset-btn:hover { border-color: var(--teal); color: var(--text); }
-.preset-btn.active { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+.preset-btn:hover { border-color: var(--teal); color: var(--text); transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
+.preset-btn:active { transform: translateY(0) scale(0.97); }
+.preset-btn.active { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); box-shadow: inset 0 0 10px rgba(77,217,196,0.1); }
 .preset-btn .preset-icon { display: block; font-size: 1.3rem; margin-bottom: 5px; }
 .preset-btn .preset-sub {
   display: block; font-size: 0.62rem; color: var(--text-muted);
@@ -112,8 +125,8 @@ body {
   display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
 }
 .param-cell {
-  background: var(--bg); border: 1px solid var(--border-dim);
-  border-radius: 6px; padding: 10px; text-align: center;
+  background: rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px; padding: 10px; text-align: center;
 }
 .param-cell .param-val {
   font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600;
@@ -152,16 +165,18 @@ body {
 /* ── Buttons ──────────────────────────────────────── */
 .actions { display: flex; gap: 10px; }
 .btn {
-  flex: 1; padding: 13px 16px; font-family: var(--font-ui);
-  font-size: 0.88rem; font-weight: 600; border: none;
-  border-radius: var(--radius); cursor: pointer;
-  transition: all var(--transition); letter-spacing: 0.01em;
+  flex: 1; padding: 14px 16px; font-family: var(--font-ui);
+  font-size: 0.95rem; font-weight: 600; border: none;
+  border-radius: 10px; cursor: pointer;
+  transition: all var(--transition); letter-spacing: 0.02em;
+  transform: scale(1);
 }
-.btn-start { background: var(--teal); color: var(--bg); }
-.btn-start:hover { background: #5EECD5; }
-.btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-stop { background: var(--panel-alt); color: var(--text-dim); border: 1px solid var(--border); }
-.btn-stop:hover { border-color: var(--red); color: var(--red); }
+.btn:active { transform: scale(0.97); }
+.btn-start { background: linear-gradient(135deg, #4DD9C4, #2CB09C); color: var(--bg); box-shadow: 0 4px 14px var(--teal-glow); }
+.btn-start:hover { box-shadow: 0 6px 20px var(--teal-glow); filter: brightness(1.1); }
+.btn-start:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; filter: none; }
+.btn-stop { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.1); }
+.btn-stop:hover { border-color: var(--red); color: var(--red); background: rgba(232,93,93,0.1); }
 .btn-stop:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* ── Progress ─────────────────────────────────────── */
@@ -199,8 +214,8 @@ body {
 /* ── Target Label ─────────────────────────────────── */
 .target-label {
   font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);
-  text-align: center; padding: 8px 22px;
-  border-bottom: 1px solid var(--border-dim); background: var(--bg);
+  text-align: center; padding: 10px 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);
   letter-spacing: 0.03em;
 }
 .target-label .target-name { color: var(--teal); font-weight: 600; }
@@ -219,12 +234,14 @@ body {
 /* ── Speaker Test ─────────────────────────────────── */
 .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .test-card {
-  background: var(--panel-alt); border: 1px solid var(--border);
+  background: rgba(28, 33, 48, 0.4); border: 1px solid rgba(255,255,255,0.05);
   border-radius: var(--radius); padding: 16px 14px; text-align: center;
   cursor: pointer; transition: all var(--transition); position: relative; overflow: hidden;
+  transform: translateY(0) scale(1);
 }
-.test-card:hover { border-color: var(--purple); }
-.test-card.playing { border-color: var(--purple); background: var(--purple-dim); }
+.test-card:hover { border-color: var(--purple); transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 12px rgba(167,139,250,0.15); }
+.test-card:active { transform: translateY(0) scale(0.97); }
+.test-card.playing { border-color: var(--purple); background: rgba(167,139,250,0.1); box-shadow: inset 0 0 15px rgba(167,139,250,0.2); transform: scale(1.02); }
 .test-card .test-icon { font-size: 1.5rem; margin-bottom: 6px; display: block; }
 .test-card .test-name { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .test-card .test-desc { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
@@ -272,9 +289,11 @@ body {
 
 /* ── Safety ───────────────────────────────────────── */
 .safety {
-  margin-top: 20px; max-width: 560px; width: 100%; padding: 16px 18px;
-  background: var(--amber-dim); border: 1px solid rgba(232,163,61,0.2);
-  border-left: 3px solid var(--amber); border-radius: var(--radius);
+  margin-top: 24px; max-width: 560px; width: 100%; padding: 18px 20px;
+  background: rgba(232, 163, 61, 0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(232,163,61,0.2);
+  border-left: 4px solid var(--amber); border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 .safety-title {
   font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
@@ -704,18 +723,20 @@ body {
     const W = scopeCanvas.width / window.devicePixelRatio;
     const H = scopeCanvas.height / window.devicePixelRatio;
     scopeCtx.clearRect(0, 0, W, H);
+    scopeCtx.globalCompositeOperation = 'source-over';
 
-    scopeCtx.strokeStyle = 'rgba(38,44,58,0.6)';
+    // Draw background grid
+    scopeCtx.strokeStyle = 'rgba(255,255,255,0.03)';
     scopeCtx.lineWidth = 1;
     for (let i = 1; i < 4; i++) {
       const y = (H / 4) * i;
       scopeCtx.beginPath(); scopeCtx.moveTo(0, y); scopeCtx.lineTo(W, y); scopeCtx.stroke();
     }
-    scopeCtx.strokeStyle = 'rgba(38,44,58,1)';
+    scopeCtx.strokeStyle = 'rgba(255,255,255,0.06)';
     scopeCtx.beginPath(); scopeCtx.moveTo(0, H / 2); scopeCtx.lineTo(W, H / 2); scopeCtx.stroke();
 
     if (!analyser) {
-      scopeCtx.strokeStyle = 'rgba(77,217,196,0.25)';
+      scopeCtx.strokeStyle = 'rgba(77,217,196,0.15)';
       scopeCtx.lineWidth = 1.5;
       scopeCtx.beginPath(); scopeCtx.moveTo(0, H / 2); scopeCtx.lineTo(W, H / 2); scopeCtx.stroke();
       animFrame = requestAnimationFrame(drawScope);
@@ -726,8 +747,18 @@ body {
     const data = new Uint8Array(bufLen);
     analyser.getByteTimeDomainData(data);
 
-    scopeCtx.strokeStyle = 'rgba(77,217,196,0.18)';
-    scopeCtx.lineWidth = 5;
+    scopeCtx.globalCompositeOperation = 'lighter';
+    
+    // Choose color based on target/mode
+    const isEarpiece = currentTarget === 'earpiece';
+    const isShock = activePreset === 'shock' || activePreset === 'jackhammer';
+    let baseColor = isShock ? '232, 93, 93' : (isEarpiece ? '167, 139, 250' : '77, 217, 196');
+
+    // Outer glow layer
+    scopeCtx.strokeStyle = `rgba(${baseColor}, 0.2)`;
+    scopeCtx.lineWidth = 6;
+    scopeCtx.shadowBlur = 12;
+    scopeCtx.shadowColor = `rgba(${baseColor}, 0.8)`;
     scopeCtx.beginPath();
     for (let i = 0; i < bufLen; i++) {
       const x = (i / bufLen) * W, y = (data[i] / 255) * H;
@@ -735,8 +766,11 @@ body {
     }
     scopeCtx.stroke();
 
-    scopeCtx.strokeStyle = '#4DD9C4';
-    scopeCtx.lineWidth = 1.8;
+    // Inner bright layer
+    scopeCtx.strokeStyle = `rgba(${baseColor}, 0.9)`;
+    scopeCtx.lineWidth = 2;
+    scopeCtx.shadowBlur = 4;
+    scopeCtx.shadowColor = `rgba(${baseColor}, 1)`;
     scopeCtx.beginPath();
     for (let i = 0; i < bufLen; i++) {
       const x = (i / bufLen) * W, y = (data[i] / 255) * H;
@@ -744,6 +778,9 @@ body {
     }
     scopeCtx.stroke();
 
+    // Reset shadow for next frame
+    scopeCtx.shadowBlur = 0;
+    
     animFrame = requestAnimationFrame(drawScope);
   }
   animFrame = requestAnimationFrame(drawScope);
