@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Base ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -26,6 +25,8 @@
   --amber:      #E8A33D;
   --amber-dim:  rgba(232,163,61,0.12);
   --red:        #E85D5D;
+  --purple:     #A78BFA;
+  --purple-dim: rgba(167,139,250,0.15);
   --radius:     8px;
   --font-ui:    'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:  'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
@@ -46,243 +47,138 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Header ───────────────────────────────────────────── */
-.header {
-  text-align: center;
-  margin-bottom: 28px;
-  max-width: 600px;
-}
-.header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #EEF0F6;
-  margin-bottom: 6px;
-}
+/* ── Header ───────────────────────────────────────── */
+.header { text-align: center; margin-bottom: 28px; max-width: 600px; }
+.header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: #EEF0F6; margin-bottom: 6px; }
 .header h1 span { color: var(--teal); }
-.header p {
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  line-height: 1.5;
-}
+.header p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; }
 
-/* ── Main Panel ───────────────────────────────────────── */
+/* ── Panel ────────────────────────────────────────── */
 .panel {
-  width: 100%;
-  max-width: 560px;
+  width: 100%; max-width: 560px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
 }
+.panel + .panel { margin-top: 16px; }
 
-.section {
-  padding: 20px 22px;
-  border-bottom: 1px solid var(--border-dim);
-}
+.section { padding: 20px 22px; border-bottom: 1px solid var(--border-dim); }
 .section:last-child { border-bottom: none; }
 
 .section-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 12px;
+  font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px;
 }
 
-/* ── Segmented Control (Speaker Target) ───────────────── */
+/* ── Segmented Control ────────────────────────────── */
 .segmented {
-  display: flex;
-  gap: 2px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 3px;
+  display: flex; gap: 2px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 3px;
 }
 .segmented button {
-  flex: 1;
-  padding: 9px 6px;
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--text-dim);
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  flex: 1; padding: 9px 6px; font-family: var(--font-ui);
+  font-size: 0.78rem; font-weight: 500; color: var(--text-dim);
+  background: transparent; border: none; border-radius: 6px;
+  cursor: pointer; transition: background var(--transition), color var(--transition);
   white-space: nowrap;
 }
 .segmented button:hover { color: var(--text); }
 .segmented button.active {
-  background: var(--teal-dim);
-  color: var(--teal);
+  background: var(--teal-dim); color: var(--teal);
   box-shadow: inset 0 0 0 1px rgba(77,217,196,0.25);
 }
 
-/* ── Preset Buttons ───────────────────────────────────── */
-.presets {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
+/* ── Preset Cards ─────────────────────────────────── */
+.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .preset-btn {
-  padding: 12px 8px;
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-dim);
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all var(--transition);
-  text-align: center;
-  line-height: 1.35;
+  padding: 14px 8px 12px; font-family: var(--font-ui);
+  font-size: 0.75rem; font-weight: 500; color: var(--text-dim);
+  background: var(--panel-alt); border: 1px solid var(--border);
+  border-radius: var(--radius); cursor: pointer;
+  transition: all var(--transition); text-align: center; line-height: 1.35;
 }
-.preset-btn:hover {
-  border-color: var(--teal);
-  color: var(--text);
+.preset-btn:hover { border-color: var(--teal); color: var(--text); }
+.preset-btn.active { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+.preset-btn .preset-icon { display: block; font-size: 1.3rem; margin-bottom: 5px; }
+.preset-btn .preset-sub {
+  display: block; font-size: 0.62rem; color: var(--text-muted);
+  margin-top: 4px; font-weight: 400;
 }
-.preset-btn.active {
-  background: var(--teal-dim);
-  border-color: var(--teal);
-  color: var(--teal);
+.preset-btn.active .preset-sub { color: rgba(77,217,196,0.6); }
+
+/* ── Param Readout (read-only) ────────────────────── */
+.param-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
 }
-.preset-btn .preset-icon {
-  display: block;
-  font-size: 1.2rem;
-  margin-bottom: 4px;
+.param-cell {
+  background: var(--bg); border: 1px solid var(--border-dim);
+  border-radius: 6px; padding: 10px; text-align: center;
+}
+.param-cell .param-val {
+  font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600;
+  color: var(--teal); display: block; margin-bottom: 3px;
+}
+.param-cell .param-key {
+  font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-/* ── Sliders / Controls ───────────────────────────────── */
-.control-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 14px;
-}
+/* ── Sliders ──────────────────────────────────────── */
+.control-row { display: flex; align-items: center; margin-bottom: 14px; }
 .control-row:last-child { margin-bottom: 0; }
-.control-label {
-  width: 110px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-dim);
-  flex-shrink: 0;
-}
+.control-label { width: 90px; font-size: 0.75rem; font-weight: 500; color: var(--text-dim); flex-shrink: 0; }
 .control-slider {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
 }
 .control-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--teal);
-  border: 2px solid var(--panel);
-  box-shadow: 0 0 0 1px rgba(77,217,196,0.3);
-  cursor: pointer;
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--teal); border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px rgba(77,217,196,0.3); cursor: pointer;
   transition: box-shadow var(--transition);
 }
-.control-slider::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 6px var(--teal-glow), 0 0 0 1px var(--teal);
-}
+.control-slider::-webkit-slider-thumb:hover { box-shadow: 0 0 6px var(--teal-glow), 0 0 0 1px var(--teal); }
 .control-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--teal);
-  border: 2px solid var(--panel);
-  cursor: pointer;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--teal); border: 2px solid var(--panel); cursor: pointer;
 }
 .control-value {
-  width: 72px;
-  text-align: right;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--teal);
-  flex-shrink: 0;
-  margin-left: 12px;
+  width: 60px; text-align: right; font-family: var(--font-mono);
+  font-size: 0.75rem; font-weight: 500; color: var(--teal);
+  flex-shrink: 0; margin-left: 12px;
 }
 
-/* ── Waveform Select ──────────────────────────────────── */
-.wave-select {
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  background: var(--panel-alt);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 7px 10px;
-  outline: none;
-  cursor: pointer;
-  flex: 1;
-}
-.wave-select:focus { border-color: var(--teal); }
-
-/* ── Action Buttons ───────────────────────────────────── */
-.actions {
-  display: flex;
-  gap: 10px;
-}
+/* ── Buttons ──────────────────────────────────────── */
+.actions { display: flex; gap: 10px; }
 .btn {
-  flex: 1;
-  padding: 12px 16px;
-  font-family: var(--font-ui);
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all var(--transition);
-  letter-spacing: 0.01em;
+  flex: 1; padding: 13px 16px; font-family: var(--font-ui);
+  font-size: 0.88rem; font-weight: 600; border: none;
+  border-radius: var(--radius); cursor: pointer;
+  transition: all var(--transition); letter-spacing: 0.01em;
 }
-.btn-start {
-  background: var(--teal);
-  color: var(--bg);
-}
+.btn-start { background: var(--teal); color: var(--bg); }
 .btn-start:hover { background: #5EECD5; }
-.btn-start:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.btn-stop {
-  background: var(--panel-alt);
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-}
-.btn-stop:hover {
-  border-color: var(--red);
-  color: var(--red);
-}
-.btn-stop:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
+.btn-start:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-stop { background: var(--panel-alt); color: var(--text-dim); border: 1px solid var(--border); }
+.btn-stop:hover { border-color: var(--red); color: var(--red); }
+.btn-stop:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* ── Status Bar ───────────────────────────────────────── */
+/* ── Progress ─────────────────────────────────────── */
+.progress-wrap { padding: 0 22px 16px; display: none; }
+.progress-bar-outer { width: 100%; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-bar-inner { height: 100%; width: 0%; background: var(--teal); border-radius: 2px; transition: width 0.3s linear; box-shadow: 0 0 6px var(--teal-glow); }
+.progress-time { display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); }
+.progress-time .elapsed { color: var(--teal); }
+
+/* ── Status Bar ───────────────────────────────────── */
 .status-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 22px;
-  background: var(--bg);
-  border-top: 1px solid var(--border-dim);
+  display: flex; align-items: center; gap: 10px; padding: 14px 22px;
+  background: var(--bg); border-top: 1px solid var(--border-dim);
 }
 .status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  flex-shrink: 0;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0;
   transition: background var(--transition), box-shadow var(--transition);
 }
 .status-dot.active {
@@ -294,99 +190,115 @@ body {
   0%, 100% { box-shadow: 0 0 6px var(--teal-glow); }
   50% { box-shadow: 0 0 14px var(--teal-glow), 0 0 4px var(--teal); }
 }
-.status-text {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  flex: 1;
-}
+.status-text { font-size: 0.75rem; color: var(--text-dim); flex: 1; }
 .status-text .stage-label { color: var(--teal); font-weight: 600; }
-.status-readout {
-  font-family: var(--font-mono);
-  font-size: 0.73rem;
-  color: var(--text-muted);
-}
+.status-readout { font-family: var(--font-mono); font-size: 0.73rem; color: var(--text-muted); }
 .status-readout .freq-val { color: var(--teal); }
 .status-readout .time-val { color: var(--text-dim); }
 
-/* ── Target Label ─────────────────────────────────────── */
+/* ── Target Label ─────────────────────────────────── */
 .target-label {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 8px 22px;
-  border-bottom: 1px solid var(--border-dim);
-  background: var(--bg);
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);
+  text-align: center; padding: 8px 22px;
+  border-bottom: 1px solid var(--border-dim); background: var(--bg);
   letter-spacing: 0.03em;
 }
 .target-label .target-name { color: var(--teal); font-weight: 600; }
 
-/* ── Oscilloscope Canvas ──────────────────────────────── */
-.scope-wrap {
-  padding: 16px 22px;
-  border-bottom: 1px solid var(--border-dim);
-}
+/* ── Oscilloscope ─────────────────────────────────── */
+.scope-wrap { padding: 16px 22px; border-bottom: 1px solid var(--border-dim); }
 .scope-canvas {
-  width: 100%;
-  height: 100px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  display: block;
+  width: 100%; height: 100px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px; display: block;
 }
 
-/* ── Safety Note ──────────────────────────────────────── */
+/* ── Speaker Test ─────────────────────────────────── */
+.test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.test-card {
+  background: var(--panel-alt); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 14px; text-align: center;
+  cursor: pointer; transition: all var(--transition); position: relative; overflow: hidden;
+}
+.test-card:hover { border-color: var(--purple); }
+.test-card.playing { border-color: var(--purple); background: var(--purple-dim); }
+.test-card .test-icon { font-size: 1.5rem; margin-bottom: 6px; display: block; }
+.test-card .test-name { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.test-card .test-desc { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
+.test-card .test-badge {
+  display: inline-block; margin-top: 8px; padding: 3px 8px;
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600;
+  border-radius: 4px; letter-spacing: 0.04em;
+}
+.test-badge.earpiece-badge { background: rgba(77,217,196,0.1); color: var(--teal); border: 1px solid rgba(77,217,196,0.2); }
+.test-badge.bottom-badge { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.test-card .play-indicator {
+  position: absolute; top: 8px; right: 10px; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--purple); display: none;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(167,139,250,0.5);
+}
+.test-card.playing .play-indicator { display: block; }
+.test-stop-btn {
+  margin-top: 12px; width: 100%; padding: 9px;
+  font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600;
+  color: var(--text-dim); background: var(--panel-alt);
+  border: 1px solid var(--border); border-radius: 6px;
+  cursor: pointer; transition: all var(--transition); display: none;
+}
+.test-stop-btn.visible { display: block; }
+.test-stop-btn:hover { border-color: var(--red); color: var(--red); }
+
+.test-viz {
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 3px; height: 24px; margin-top: 8px; opacity: 0; transition: opacity 0.3s;
+}
+.test-card.playing .test-viz { opacity: 1; }
+.test-viz-bar {
+  width: 3px; background: var(--purple); border-radius: 2px;
+  animation: viz-bounce 0.6s ease-in-out infinite alternate;
+}
+.test-viz-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+.test-viz-bar:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+.test-viz-bar:nth-child(3) { height: 12px; animation-delay: 0.2s; }
+.test-viz-bar:nth-child(4) { height: 20px; animation-delay: 0.15s; }
+.test-viz-bar:nth-child(5) { height: 10px; animation-delay: 0.25s; }
+.test-viz-bar:nth-child(6) { height: 18px; animation-delay: 0.05s; }
+.test-viz-bar:nth-child(7) { height: 14px; animation-delay: 0.3s; }
+@keyframes viz-bounce { 0% { transform: scaleY(0.4); } 100% { transform: scaleY(1); } }
+
+/* ── Safety ───────────────────────────────────────── */
 .safety {
-  margin-top: 20px;
-  max-width: 560px;
-  width: 100%;
-  padding: 16px 18px;
-  background: var(--amber-dim);
-  border: 1px solid rgba(232,163,61,0.2);
-  border-left: 3px solid var(--amber);
-  border-radius: var(--radius);
+  margin-top: 20px; max-width: 560px; width: 100%; padding: 16px 18px;
+  background: var(--amber-dim); border: 1px solid rgba(232,163,61,0.2);
+  border-left: 3px solid var(--amber); border-radius: var(--radius);
 }
 .safety-title {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--amber);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--amber); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
 }
-.safety p {
-  font-size: 0.76rem;
-  color: var(--text-dim);
-  line-height: 1.6;
-  margin-bottom: 6px;
-}
+.safety p { font-size: 0.76rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 6px; }
 .safety p:last-child { margin-bottom: 0; }
 
-/* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 480px) {
   html { font-size: 14px; }
   .section { padding: 16px 16px; }
-  .control-label { width: 90px; }
-  .control-value { width: 60px; margin-left: 8px; }
   .presets { grid-template-columns: 1fr; }
+  .param-grid { grid-template-columns: 1fr 1fr; }
+  .test-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- ── Header ──────────────────────────────────────────── -->
 <div class="header">
   <h1><span>◉</span> Speaker Cleaner</h1>
   <p>Play targeted audio sweeps through your phone's speakers to vibrate out dust, lint, and dried liquid residue.</p>
 </div>
 
-<!-- ── Main Panel ──────────────────────────────────────── -->
+<!-- ── Cleaning Panel ──────────────────────────────── -->
 <div class="panel" id="mainPanel">
 
-  <!-- Speaker Target Selector -->
   <div class="section">
     <div class="section-label">Speaker Target</div>
     <div class="segmented" id="speakerTarget">
@@ -396,124 +308,135 @@ body {
     </div>
   </div>
 
-  <!-- Target Label -->
-  <div class="target-label" id="targetLabel">
-    Cleaning: <span class="target-name" id="targetName">Bottom Speaker</span>
-  </div>
+  <div class="target-label" id="targetLabel">Cleaning: <span class="target-name" id="targetName">Bottom Speaker</span></div>
 
-  <!-- Oscilloscope -->
   <div class="scope-wrap">
     <canvas class="scope-canvas" id="scopeCanvas"></canvas>
   </div>
 
-  <!-- Presets -->
   <div class="section">
-    <div class="section-label">Preset Patterns</div>
+    <div class="section-label">Cleaning Mode</div>
     <div class="presets" id="presetGroup">
-      <button class="preset-btn" data-preset="water" id="preset-water">
+      <button class="preset-btn active" data-preset="water" id="preset-water">
         <span class="preset-icon">💧</span>Water Eject
+        <span class="preset-sub">Rapid low-freq pulses</span>
       </button>
       <button class="preset-btn" data-preset="dust" id="preset-dust">
         <span class="preset-icon">🌬️</span>Dust &amp; Debris
+        <span class="preset-sub">Wide mid-range sweep</span>
       </button>
       <button class="preset-btn" data-preset="deep" id="preset-deep">
         <span class="preset-icon">🔊</span>Deep Clean
+        <span class="preset-sub">Full-range aggressive</span>
       </button>
     </div>
   </div>
 
-  <!-- Controls -->
+  <!-- Active parameters readout -->
   <div class="section">
-    <div class="section-label">Sweep Parameters</div>
-
-    <div class="control-row">
-      <span class="control-label">Start Freq</span>
-      <input type="range" class="control-slider" id="sliderStartFreq" min="100" max="16000" value="100" step="10">
-      <span class="control-value" id="valStartFreq">100 Hz</span>
+    <div class="section-label">Active Parameters</div>
+    <div class="param-grid">
+      <div class="param-cell">
+        <span class="param-val" id="paramFreqRange">100–200 Hz</span>
+        <span class="param-key">Freq Range</span>
+      </div>
+      <div class="param-cell">
+        <span class="param-val" id="paramWave">Sine</span>
+        <span class="param-key">Waveform</span>
+      </div>
+      <div class="param-cell">
+        <span class="param-val" id="paramCycle">3.0s</span>
+        <span class="param-key">Cycle</span>
+      </div>
     </div>
+  </div>
 
+  <div class="section">
+    <div class="section-label">Adjustments</div>
     <div class="control-row">
-      <span class="control-label">End Freq</span>
-      <input type="range" class="control-slider" id="sliderEndFreq" min="100" max="16000" value="8000" step="10">
-      <span class="control-value" id="valEndFreq">8000 Hz</span>
+      <span class="control-label">Duration</span>
+      <input type="range" class="control-slider" id="sliderDuration" min="5" max="60" value="20" step="1">
+      <span class="control-value" id="valDuration">20 s</span>
     </div>
-
-    <div class="control-row">
-      <span class="control-label">Cycle Length</span>
-      <input type="range" class="control-slider" id="sliderCycleLen" min="1" max="30" value="5" step="0.5">
-      <span class="control-value" id="valCycleLen">5.0 s</span>
-    </div>
-
-    <div class="control-row">
-      <span class="control-label">Repeat Count</span>
-      <input type="range" class="control-slider" id="sliderRepeat" min="1" max="20" value="3" step="1">
-      <span class="control-value" id="valRepeat">3×</span>
-    </div>
-
     <div class="control-row">
       <span class="control-label">Volume</span>
       <input type="range" class="control-slider" id="sliderVolume" min="0" max="100" value="40" step="1">
       <span class="control-value" id="valVolume">40%</span>
     </div>
-
-    <div class="control-row">
-      <span class="control-label">Waveform</span>
-      <select class="wave-select" id="selectWave">
-        <option value="sine">Sine</option>
-        <option value="triangle">Triangle</option>
-        <option value="square">Square</option>
-      </select>
-    </div>
   </div>
 
-  <!-- Actions -->
   <div class="section">
     <div class="actions">
-      <button class="btn btn-start" id="btnStart">▶  Start Sweep</button>
+      <button class="btn btn-start" id="btnStart">▶  Start Cleaning</button>
       <button class="btn btn-stop" id="btnStop" disabled>■  Stop</button>
     </div>
   </div>
 
-  <!-- Status Bar -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progressBar"></div>
+    </div>
+    <div class="progress-time">
+      <span class="elapsed" id="progressElapsed">0.0s</span>
+      <span id="progressTotal">20.0s</span>
+    </div>
+  </div>
+
   <div class="status-bar">
     <div class="status-dot" id="statusDot"></div>
-    <div class="status-text" id="statusText">Idle — configure parameters and press Start</div>
+    <div class="status-text" id="statusText">Idle — select a mode and press Start</div>
     <div class="status-readout">
       <span class="freq-val" id="readoutFreq"></span>
       <span class="time-val" id="readoutTime"></span>
     </div>
   </div>
-
 </div>
 
-<!-- ── Safety Note ─────────────────────────────────────── -->
+<!-- ── Speaker Test Panel ──────────────────────────── -->
+<div class="panel" id="testPanel">
+  <div class="section">
+    <div class="section-label">🎵 Speaker Test — Tap to Play</div>
+    <div class="test-grid">
+      <div class="test-card" id="testEarpiece">
+        <div class="play-indicator"></div>
+        <span class="test-icon">📱</span>
+        <div class="test-name">Earpiece</div>
+        <div class="test-desc">High-range melody for the top speaker</div>
+        <span class="test-badge earpiece-badge">300 – 8 kHz</span>
+        <div class="test-viz"><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div></div>
+      </div>
+      <div class="test-card" id="testBottom">
+        <div class="play-indicator"></div>
+        <span class="test-icon">🔈</span>
+        <div class="test-name">Bottom Speaker</div>
+        <div class="test-desc">Full-range melody with bass</div>
+        <span class="test-badge bottom-badge">100 – 16 kHz</span>
+        <div class="test-viz"><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div><div class="test-viz-bar"></div></div>
+      </div>
+    </div>
+    <button class="test-stop-btn" id="testStopBtn">■  Stop Test</button>
+  </div>
+</div>
+
 <div class="safety">
   <div class="safety-title">⚠ Safety Notice</div>
   <p>Start at <strong>low volume</strong> and increase gradually. Stop immediately if the sound distorts or the phone feels warm near the speaker.</p>
   <p>This tool won't fix a genuinely damaged driver. If the problem persists after a few runs, your speaker likely needs proper cleaning or professional repair — not more sweeps.</p>
 </div>
 
-<!-- ── Script ──────────────────────────────────────────── -->
 <script>
 (function () {
   'use strict';
 
-  /* ── DOM refs ──────────────────────────────────────── */
-  const $  = id => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
+  /* ── DOM ────────────────────────────────────────── */
   const targetBtns      = document.querySelectorAll('#speakerTarget button');
   const presetBtns      = document.querySelectorAll('.preset-btn');
-  const sliderStartFreq = $('sliderStartFreq');
-  const sliderEndFreq   = $('sliderEndFreq');
-  const valStartFreq    = $('valStartFreq');
-  const valEndFreq      = $('valEndFreq');
-  const sliderCycleLen  = $('sliderCycleLen');
-  const valCycleLen     = $('valCycleLen');
-  const sliderRepeat    = $('sliderRepeat');
-  const valRepeat       = $('valRepeat');
+  const sliderDuration  = $('sliderDuration');
+  const valDuration     = $('valDuration');
   const sliderVolume    = $('sliderVolume');
   const valVolume       = $('valVolume');
-  const selectWave      = $('selectWave');
   const btnStart        = $('btnStart');
   const btnStop         = $('btnStop');
   const statusDot       = $('statusDot');
@@ -521,35 +444,47 @@ body {
   const readoutFreq     = $('readoutFreq');
   const readoutTime     = $('readoutTime');
   const targetLabel     = $('targetLabel');
-  const targetName      = $('targetName');
   const scopeCanvas     = $('scopeCanvas');
   const scopeCtx        = scopeCanvas.getContext('2d');
+  const progressWrap    = $('progressWrap');
+  const progressBar     = $('progressBar');
+  const progressElapsed = $('progressElapsed');
+  const progressTotal   = $('progressTotal');
+  const paramFreqRange  = $('paramFreqRange');
+  const paramWave       = $('paramWave');
+  const paramCycle      = $('paramCycle');
+  const testEarpiece    = $('testEarpiece');
+  const testBottom      = $('testBottom');
+  const testStopBtn     = $('testStopBtn');
 
-  /* ── Speaker range definitions ─────────────────────── */
+  /* ── Ranges ─────────────────────────────────────── */
   const RANGES = {
     earpiece: { min: 300,  max: 8000,  label: 'Earpiece' },
     bottom:   { min: 100,  max: 16000, label: 'Bottom Speaker' },
   };
 
-  /* ── Preset definitions (target-aware) ─────────────── */
+  /* ── Optimized presets per target ───────────────── */
   const PRESETS = {
     water: {
-      earpiece: { start: 350, end: 400,  cycle: 4,  repeat: 5,  wave: 'sine' },
-      bottom:   { start: 100, end: 200,  cycle: 4,  repeat: 5,  wave: 'sine' },
+      earpiece: { start: 300,  end: 500,   cycle: 3,   wave: 'sine' },
+      bottom:   { start: 100,  end: 200,   cycle: 3,   wave: 'sine' },
+      desc: 'Rapid low-freq pulses push liquid out through speaker mesh',
     },
     dust: {
-      earpiece: { start: 1000, end: 6000, cycle: 6,  repeat: 3,  wave: 'triangle' },
-      bottom:   { start: 300,  end: 12000, cycle: 6,  repeat: 3,  wave: 'triangle' },
+      earpiece: { start: 500,  end: 7000,  cycle: 5,   wave: 'triangle' },
+      bottom:   { start: 200,  end: 12000, cycle: 5,   wave: 'triangle' },
+      desc: 'Wide sweep with sharp harmonics to dislodge fine particles',
     },
     deep: {
-      earpiece: { start: 300,  end: 8000, cycle: 10, repeat: 4,  wave: 'square' },
-      bottom:   { start: 100,  end: 16000, cycle: 10, repeat: 4,  wave: 'square' },
+      earpiece: { start: 300,  end: 8000,  cycle: 8,   wave: 'square' },
+      bottom:   { start: 100,  end: 16000, cycle: 8,   wave: 'square' },
+      desc: 'Full-range aggressive sweep with maximum harmonic content',
     },
   };
 
-  /* ── State ─────────────────────────────────────────── */
-  let currentTarget = 'bottom';   // 'earpiece' | 'bottom' | 'both'
-  let activePreset  = null;
+  /* ── State ──────────────────────────────────────── */
+  let currentTarget = 'bottom';
+  let activePreset  = 'water';
   let isPlaying     = false;
   let audioCtx      = null;
   let oscillator    = null;
@@ -557,54 +492,41 @@ body {
   let analyser      = null;
   let animFrame     = null;
   let sweepTimer    = null;
-  let stageAbort    = false;      // flag used to stop "Both" mid-sequence
-  let currentStage  = 0;          // 0 or 1 when "both" is active
+  let stageAbort    = false;
+  let currentStage  = 0;
   let playStartTime = 0;
+  let progressInterval = null;
+
+  let testAudioCtx = null;
+  let testNodes    = [];
+  let testPlaying  = null;
+  let testTimeout  = null;
 
   const MAX_GAIN = 0.6;
 
-  /* ── Helpers ───────────────────────────────────────── */
-  function getRange(target) {
-    if (target === 'both') return null; // handled per-stage
-    return RANGES[target];
-  }
-
-  function activeRange() {
-    if (currentTarget === 'both') return RANGES.bottom; // widest for UI display
-    return RANGES[currentTarget];
-  }
-
+  /* ── Helpers ────────────────────────────────────── */
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function fmtFreq(hz) { return hz >= 1000 ? (hz / 1000).toFixed(1) + ' kHz' : hz + ' Hz'; }
+  const WAVE_LABELS = { sine: 'Sine', triangle: 'Triangle', square: 'Square' };
 
-  function fmtFreq(hz) {
-    return hz >= 1000 ? (hz / 1000).toFixed(1) + ' kHz' : hz + ' Hz';
-  }
-
-  /* ── UI updaters ───────────────────────────────────── */
-  function syncSliderRange() {
-    const r = activeRange();
-    sliderStartFreq.min = r.min;
-    sliderStartFreq.max = r.max;
-    sliderEndFreq.min   = r.min;
-    sliderEndFreq.max   = r.max;
-    // Re-clamp values
-    sliderStartFreq.value = clamp(+sliderStartFreq.value, r.min, r.max);
-    sliderEndFreq.value   = clamp(+sliderEndFreq.value,   r.min, r.max);
-    refreshReadouts();
-  }
-
+  /* ── UI ─────────────────────────────────────────── */
   function refreshReadouts() {
-    valStartFreq.textContent = fmtFreq(+sliderStartFreq.value);
-    valEndFreq.textContent   = fmtFreq(+sliderEndFreq.value);
-    valCycleLen.textContent  = (+sliderCycleLen.value).toFixed(1) + ' s';
-    valRepeat.textContent    = sliderRepeat.value + '×';
-    valVolume.textContent    = sliderVolume.value + '%';
+    valDuration.textContent = sliderDuration.value + ' s';
+    valVolume.textContent   = sliderVolume.value + '%';
+  }
+
+  function updateParamDisplay() {
+    const tgt = currentTarget === 'both' ? 'bottom' : currentTarget;
+    const p = PRESETS[activePreset][tgt];
+    paramFreqRange.textContent = fmtFreq(p.start) + ' – ' + fmtFreq(p.end);
+    paramWave.textContent      = WAVE_LABELS[p.wave];
+    paramCycle.textContent     = p.cycle.toFixed(1) + 's';
   }
 
   function updateTargetLabel(extra) {
     const map = { earpiece: 'Earpiece', bottom: 'Bottom Speaker', both: 'Both' };
-    targetName.textContent = extra || map[currentTarget];
-    targetLabel.innerHTML = 'Cleaning: <span class="target-name">' + targetName.textContent + '</span>';
+    const txt = extra || map[currentTarget];
+    targetLabel.innerHTML = 'Cleaning: <span class="target-name">' + txt + '</span>';
   }
 
   function setStatus(text, active) {
@@ -618,7 +540,29 @@ body {
     btnStop.disabled  = !state;
   }
 
-  /* ── Scope / Visualiser ────────────────────────────── */
+  /* ── Progress ───────────────────────────────────── */
+  function showProgress(totalSec) {
+    progressWrap.style.display = '';
+    progressBar.style.width = '0%';
+    progressElapsed.textContent = '0.0s';
+    progressTotal.textContent = totalSec.toFixed(1) + 's';
+    const start = performance.now();
+    progressInterval = setInterval(() => {
+      const elapsed = (performance.now() - start) / 1000;
+      const pct = Math.min((elapsed / totalSec) * 100, 100);
+      progressBar.style.width = pct + '%';
+      progressElapsed.textContent = elapsed.toFixed(1) + 's';
+    }, 100);
+  }
+
+  function hideProgress() {
+    clearInterval(progressInterval);
+    progressInterval = null;
+    progressBar.style.width = '100%';
+    setTimeout(() => { progressWrap.style.display = 'none'; }, 400);
+  }
+
+  /* ── Scope ──────────────────────────────────────── */
   function resizeCanvas() {
     const rect = scopeCanvas.getBoundingClientRect();
     scopeCanvas.width  = rect.width * window.devicePixelRatio;
@@ -633,119 +577,84 @@ body {
     const H = scopeCanvas.height / window.devicePixelRatio;
     scopeCtx.clearRect(0, 0, W, H);
 
-    // Grid lines
     scopeCtx.strokeStyle = 'rgba(38,44,58,0.6)';
     scopeCtx.lineWidth = 1;
     for (let i = 1; i < 4; i++) {
       const y = (H / 4) * i;
-      scopeCtx.beginPath();
-      scopeCtx.moveTo(0, y);
-      scopeCtx.lineTo(W, y);
-      scopeCtx.stroke();
+      scopeCtx.beginPath(); scopeCtx.moveTo(0, y); scopeCtx.lineTo(W, y); scopeCtx.stroke();
     }
-    // Center line (brighter)
     scopeCtx.strokeStyle = 'rgba(38,44,58,1)';
-    scopeCtx.beginPath();
-    scopeCtx.moveTo(0, H / 2);
-    scopeCtx.lineTo(W, H / 2);
-    scopeCtx.stroke();
+    scopeCtx.beginPath(); scopeCtx.moveTo(0, H / 2); scopeCtx.lineTo(W, H / 2); scopeCtx.stroke();
 
     if (!analyser) {
-      // Flat line
       scopeCtx.strokeStyle = 'rgba(77,217,196,0.25)';
       scopeCtx.lineWidth = 1.5;
-      scopeCtx.beginPath();
-      scopeCtx.moveTo(0, H / 2);
-      scopeCtx.lineTo(W, H / 2);
-      scopeCtx.stroke();
+      scopeCtx.beginPath(); scopeCtx.moveTo(0, H / 2); scopeCtx.lineTo(W, H / 2); scopeCtx.stroke();
       animFrame = requestAnimationFrame(drawScope);
       return;
     }
 
     const bufLen = analyser.fftSize;
-    const data   = new Uint8Array(bufLen);
+    const data = new Uint8Array(bufLen);
     analyser.getByteTimeDomainData(data);
 
-    // Glow layer
     scopeCtx.strokeStyle = 'rgba(77,217,196,0.18)';
     scopeCtx.lineWidth = 5;
     scopeCtx.beginPath();
     for (let i = 0; i < bufLen; i++) {
-      const x = (i / bufLen) * W;
-      const y = (data[i] / 255) * H;
+      const x = (i / bufLen) * W, y = (data[i] / 255) * H;
       i === 0 ? scopeCtx.moveTo(x, y) : scopeCtx.lineTo(x, y);
     }
     scopeCtx.stroke();
 
-    // Main trace
     scopeCtx.strokeStyle = '#4DD9C4';
     scopeCtx.lineWidth = 1.8;
     scopeCtx.beginPath();
     for (let i = 0; i < bufLen; i++) {
-      const x = (i / bufLen) * W;
-      const y = (data[i] / 255) * H;
+      const x = (i / bufLen) * W, y = (data[i] / 255) * H;
       i === 0 ? scopeCtx.moveTo(x, y) : scopeCtx.lineTo(x, y);
     }
     scopeCtx.stroke();
 
     animFrame = requestAnimationFrame(drawScope);
   }
-  // Start idle scope drawing
   animFrame = requestAnimationFrame(drawScope);
 
-  /* ── Live frequency readout (during playback) ──────── */
-  let freqReadoutInterval = null;
+  /* ── Freq readout ───────────────────────────────── */
+  let freqInterval = null;
 
   function startFreqReadout() {
     playStartTime = performance.now();
-    freqReadoutInterval = setInterval(() => {
+    freqInterval = setInterval(() => {
       if (!oscillator || !isPlaying) return;
-      try {
-        const freq = oscillator.frequency.value;
-        readoutFreq.textContent = fmtFreq(Math.round(freq));
-      } catch (_) {
-        readoutFreq.textContent = '';
-      }
-      const elapsed = ((performance.now() - playStartTime) / 1000).toFixed(1);
-      readoutTime.textContent = '  ' + elapsed + 's';
+      try { readoutFreq.textContent = fmtFreq(Math.round(oscillator.frequency.value)); } catch (_) { readoutFreq.textContent = ''; }
+      readoutTime.textContent = '  ' + ((performance.now() - playStartTime) / 1000).toFixed(1) + 's';
     }, 80);
   }
 
   function stopFreqReadout() {
-    clearInterval(freqReadoutInterval);
-    freqReadoutInterval = null;
-    readoutFreq.textContent = '';
-    readoutTime.textContent = '';
+    clearInterval(freqInterval); freqInterval = null;
+    readoutFreq.textContent = ''; readoutTime.textContent = '';
   }
 
-  /* ── Audio engine ──────────────────────────────────── */
+  /* ── Audio engine ───────────────────────────────── */
   async function createAudioCtx() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // Mobile browsers require an explicit resume() inside a user gesture
-    if (audioCtx.state === 'suspended') {
-      await audioCtx.resume();
-    }
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
   }
 
   function buildGraph(volume) {
     gainNode = audioCtx.createGain();
     gainNode.gain.value = (volume / 100) * MAX_GAIN;
-
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
-
     gainNode.connect(analyser);
     analyser.connect(audioCtx.destination);
   }
 
-  /**
-   * Runs one sweep stage.
-   * Returns a Promise that resolves when the stage finishes.
-   */
-  function runStage(startHz, endHz, cycleSec, repeatCount, waveType, volume) {
+  function runStage(startHz, endHz, cycleSec, totalSec, waveType, volume) {
     return new Promise((resolve) => {
       if (stageAbort) { resolve(); return; }
-
       buildGraph(volume);
 
       oscillator = audioCtx.createOscillator();
@@ -754,94 +663,71 @@ body {
 
       const now = audioCtx.currentTime;
       let t = now;
+      const repeatCount = Math.max(1, Math.ceil(totalSec / cycleSec));
 
       for (let i = 0; i < repeatCount; i++) {
         const goingUp = (i % 2 === 0);
-        const fromHz  = goingUp ? startHz : endHz;
-        const toHz    = goingUp ? endHz   : startHz;
+        const fromHz = goingUp ? startHz : endHz;
+        const toHz   = goingUp ? endHz   : startHz;
         oscillator.frequency.setValueAtTime(fromHz, t);
-        oscillator.frequency.linearRampToValueAtTime(toHz, t + cycleSec);
-        t += cycleSec;
+        const segEnd = Math.min(t + cycleSec, now + totalSec);
+        oscillator.frequency.linearRampToValueAtTime(toHz, segEnd);
+        t = segEnd;
+        if (t >= now + totalSec) break;
       }
 
       oscillator.start(now);
-      oscillator.stop(t);
+      oscillator.stop(now + totalSec);
 
       oscillator.onended = () => {
         try { oscillator.disconnect(); } catch (_) {}
         try { gainNode.disconnect(); } catch (_) {}
         try { analyser.disconnect(); } catch (_) {}
-        oscillator = null;
-        gainNode = null;
-        analyser = null;
+        oscillator = null; gainNode = null; analyser = null;
         resolve();
       };
     });
   }
 
-  /* ── Playback orchestration ────────────────────────── */
+  /* ── Playback ───────────────────────────────────── */
   async function startPlayback() {
     if (isPlaying) return;
     stageAbort = false;
     setPlaying(true);
-
     await createAudioCtx();
 
-    const volume     = +sliderVolume.value;
-    const cycleSec   = +sliderCycleLen.value;
-    const repeatN    = +sliderRepeat.value;
-    const waveType   = selectWave.value;
+    const volume   = +sliderVolume.value;
+    const totalSec = +sliderDuration.value;
+    const preset   = PRESETS[activePreset];
 
     startFreqReadout();
 
     if (currentTarget === 'both') {
-      // ── Stage 1: Earpiece ──
-      const re = RANGES.earpiece;
-      const rb = RANGES.bottom;
-
-      let s1Start, s1End, s2Start, s2End;
-
-      // If a preset is active, use its per-target values; else use slider values clamped per range
-      if (activePreset && PRESETS[activePreset]) {
-        const pe = PRESETS[activePreset].earpiece;
-        const pb = PRESETS[activePreset].bottom;
-        s1Start = pe.start; s1End = pe.end;
-        s2Start = pb.start; s2End = pb.end;
-      } else {
-        s1Start = clamp(+sliderStartFreq.value, re.min, re.max);
-        s1End   = clamp(+sliderEndFreq.value,   re.min, re.max);
-        s2Start = clamp(+sliderStartFreq.value, rb.min, rb.max);
-        s2End   = clamp(+sliderEndFreq.value,   rb.min, rb.max);
-      }
+      const pe = preset.earpiece;
+      const pb = preset.bottom;
+      const combinedTotal = totalSec * 2 + 1.5;
+      showProgress(combinedTotal);
 
       currentStage = 1;
       updateTargetLabel('Both (Stage 1 of 2 — Earpiece)');
       setStatus('<span class="stage-label">Stage 1 of 2: Earpiece</span> — sweeping…', true);
-
-      await runStage(s1Start, s1End, cycleSec, repeatN, waveType, volume);
+      await runStage(pe.start, pe.end, pe.cycle, totalSec, pe.wave, volume);
       if (stageAbort) { finishPlayback(); return; }
 
-      // Pause between stages
       setStatus('Pause between stages…', true);
       await new Promise(r => { sweepTimer = setTimeout(r, 1500); });
       if (stageAbort) { finishPlayback(); return; }
 
-      // ── Stage 2: Bottom Speaker ──
       currentStage = 2;
       updateTargetLabel('Both (Stage 2 of 2 — Bottom Speaker)');
       setStatus('<span class="stage-label">Stage 2 of 2: Bottom Speaker</span> — sweeping…', true);
-
-      await runStage(s2Start, s2End, cycleSec, repeatN, waveType, volume);
+      await runStage(pb.start, pb.end, pb.cycle, totalSec, pb.wave, volume);
 
     } else {
-      // Single-target sweep
-      const startHz = +sliderStartFreq.value;
-      const endHz   = +sliderEndFreq.value;
-
-      const label = RANGES[currentTarget].label;
-      setStatus('Sweeping <span class="stage-label">' + label + '</span>…', true);
-
-      await runStage(startHz, endHz, cycleSec, repeatN, waveType, volume);
+      const p = preset[currentTarget];
+      showProgress(totalSec);
+      setStatus('Sweeping <span class="stage-label">' + RANGES[currentTarget].label + '</span>…', true);
+      await runStage(p.start, p.end, p.cycle, totalSec, p.wave, volume);
     }
 
     finishPlayback();
@@ -850,111 +736,142 @@ body {
   function stopPlayback() {
     stageAbort = true;
     clearTimeout(sweepTimer);
-    if (oscillator) {
-      try { oscillator.stop(); } catch (_) {}
-    }
-    // onended handler will clean up nodes; finishPlayback is called from there or from start
+    if (oscillator) { try { oscillator.stop(); } catch (_) {} }
   }
 
   function finishPlayback() {
     stopFreqReadout();
-
-    // Ensure nodes are cleaned up (each in its own try/catch)
-    if (oscillator) {
-      try { oscillator.stop(); } catch (_) {}
-      try { oscillator.disconnect(); } catch (_) {}
-      oscillator = null;
-    }
-    if (gainNode) {
-      try { gainNode.disconnect(); } catch (_) {}
-      gainNode = null;
-    }
-    if (analyser) {
-      try { analyser.disconnect(); } catch (_) {}
-      analyser = null;
-    }
-
-    if (audioCtx) {
-      audioCtx.close().catch(() => {});
-      audioCtx = null;
-    }
-
+    hideProgress();
+    if (oscillator) { try { oscillator.stop(); } catch (_) {} try { oscillator.disconnect(); } catch (_) {} oscillator = null; }
+    if (gainNode)   { try { gainNode.disconnect(); } catch (_) {} gainNode = null; }
+    if (analyser)   { try { analyser.disconnect(); } catch (_) {} analyser = null; }
+    if (audioCtx)   { audioCtx.close().catch(() => {}); audioCtx = null; }
     setPlaying(false);
-    setStatus('Idle — configure parameters and press Start', false);
+    setStatus('Idle — select a mode and press Start', false);
     updateTargetLabel();
     currentStage = 0;
   }
 
-  /* ── Event wiring ──────────────────────────────────── */
+  /* ═══ Speaker Test ══════════════════════════════ */
+  const MELODIES = {
+    earpiece: {
+      notes: [
+        {hz:523,dur:.35},{hz:587,dur:.35},{hz:659,dur:.5},{hz:784,dur:.35},{hz:880,dur:.5},
+        {hz:784,dur:.35},{hz:659,dur:.5},{hz:523,dur:.7},
+        {hz:880,dur:.3},{hz:784,dur:.3},{hz:659,dur:.4},{hz:587,dur:.3},{hz:523,dur:.6},
+        {hz:659,dur:.35},{hz:784,dur:.5},{hz:1047,dur:.7},
+      ],
+      harmonicRatio: 2, harmonicGain: 0.15,
+    },
+    bottom: {
+      notes: [
+        {hz:131,dur:.45},{hz:165,dur:.35},{hz:196,dur:.45},{hz:262,dur:.5},{hz:330,dur:.35},
+        {hz:392,dur:.5},{hz:523,dur:.6},{hz:392,dur:.35},
+        {hz:330,dur:.35},{hz:262,dur:.5},{hz:196,dur:.4},{hz:165,dur:.35},{hz:131,dur:.6},
+        {hz:196,dur:.35},{hz:262,dur:.5},{hz:523,dur:.8},
+      ],
+      harmonicRatio: 1.5, harmonicGain: 0.20,
+    },
+  };
 
-  // Speaker target selector
+  function stopTestAudio() {
+    clearTimeout(testTimeout);
+    testNodes.forEach(n => { try { n.stop(); } catch (_) {} try { n.disconnect(); } catch (_) {} });
+    testNodes = [];
+    if (testAudioCtx) { testAudioCtx.close().catch(() => {}); testAudioCtx = null; }
+    testPlaying = null;
+    testEarpiece.classList.remove('playing');
+    testBottom.classList.remove('playing');
+    testStopBtn.classList.remove('visible');
+  }
+
+  async function playTestMelody(target) {
+    if (testPlaying) stopTestAudio();
+    testPlaying = target;
+    (target === 'earpiece' ? testEarpiece : testBottom).classList.add('playing');
+    testStopBtn.classList.add('visible');
+
+    testAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (testAudioCtx.state === 'suspended') await testAudioCtx.resume();
+
+    const melody = MELODIES[target];
+    const masterGain = testAudioCtx.createGain();
+    masterGain.gain.value = 0.35;
+    masterGain.connect(testAudioCtx.destination);
+
+    const now = testAudioCtx.currentTime;
+    let t = now + 0.05;
+    const gap = 0.08;
+
+    for (let rep = 0; rep < 2; rep++) {
+      for (const note of melody.notes) {
+        const osc = testAudioCtx.createOscillator();
+        osc.type = 'sine'; osc.frequency.value = note.hz;
+        const env = testAudioCtx.createGain();
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.6, t + 0.04);
+        env.gain.setValueAtTime(0.6, t + note.dur * 0.7);
+        env.gain.linearRampToValueAtTime(0, t + note.dur);
+        osc.connect(env); env.connect(masterGain);
+        osc.start(t); osc.stop(t + note.dur + 0.01);
+        testNodes.push(osc);
+
+        const osc2 = testAudioCtx.createOscillator();
+        osc2.type = 'sine'; osc2.frequency.value = note.hz * melody.harmonicRatio;
+        const env2 = testAudioCtx.createGain();
+        env2.gain.setValueAtTime(0, t);
+        env2.gain.linearRampToValueAtTime(melody.harmonicGain, t + 0.05);
+        env2.gain.setValueAtTime(melody.harmonicGain, t + note.dur * 0.6);
+        env2.gain.linearRampToValueAtTime(0, t + note.dur);
+        osc2.connect(env2); env2.connect(masterGain);
+        osc2.start(t); osc2.stop(t + note.dur + 0.01);
+        testNodes.push(osc2);
+
+        t += note.dur + gap;
+      }
+      t += 0.3;
+    }
+
+    testTimeout = setTimeout(() => stopTestAudio(), (t - now) * 1000 + 200);
+  }
+
+  /* ── Events ─────────────────────────────────────── */
   targetBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      if (isPlaying) return; // don't change while running
+      if (isPlaying) return;
       targetBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentTarget = btn.dataset.target;
-      syncSliderRange();
       updateTargetLabel();
-      // Re-apply preset if one is active
-      if (activePreset) applyPreset(activePreset);
+      updateParamDisplay();
     });
   });
-
-  // Presets
-  function applyPreset(name) {
-    if (isPlaying) return;
-    activePreset = name;
-    presetBtns.forEach(b => b.classList.toggle('active', b.dataset.preset === name));
-
-    // Determine which target's preset data to display on sliders
-    const tgt = currentTarget === 'both' ? 'bottom' : currentTarget;
-    const p = PRESETS[name][tgt];
-    const r = RANGES[tgt];
-
-    sliderStartFreq.value = clamp(p.start, r.min, r.max);
-    sliderEndFreq.value   = clamp(p.end,   r.min, r.max);
-    sliderCycleLen.value  = p.cycle;
-    sliderRepeat.value    = p.repeat;
-    selectWave.value      = p.wave;
-    refreshReadouts();
-  }
 
   presetBtns.forEach(btn => {
-    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
-  });
-
-  // Sliders
-  [sliderStartFreq, sliderEndFreq, sliderCycleLen, sliderRepeat, sliderVolume].forEach(s => {
-    s.addEventListener('input', () => {
-      // If user manually changes sliders, de-select preset
-      if (document.activeElement === s) {
-        activePreset = null;
-        presetBtns.forEach(b => b.classList.remove('active'));
-      }
-      refreshReadouts();
-
-      // Live volume adjustment during playback
-      if (s === sliderVolume && gainNode) {
-        gainNode.gain.value = (+sliderVolume.value / 100) * MAX_GAIN;
-      }
+    btn.addEventListener('click', () => {
+      if (isPlaying) return;
+      activePreset = btn.dataset.preset;
+      presetBtns.forEach(b => b.classList.toggle('active', b.dataset.preset === activePreset));
+      updateParamDisplay();
     });
   });
 
-  // Waveform select change clears preset
-  selectWave.addEventListener('change', () => {
-    activePreset = null;
-    presetBtns.forEach(b => b.classList.remove('active'));
+  sliderDuration.addEventListener('input', refreshReadouts);
+  sliderVolume.addEventListener('input', () => {
+    refreshReadouts();
+    if (gainNode) gainNode.gain.value = (+sliderVolume.value / 100) * MAX_GAIN;
   });
 
-  // Start / Stop buttons
   btnStart.addEventListener('click', startPlayback);
   btnStop.addEventListener('click', stopPlayback);
+  testEarpiece.addEventListener('click', () => playTestMelody('earpiece'));
+  testBottom.addEventListener('click', () => playTestMelody('bottom'));
+  testStopBtn.addEventListener('click', stopTestAudio);
 
-  /* ── Init ──────────────────────────────────────────── */
-  syncSliderRange();
+  /* ── Init ───────────────────────────────────────── */
   refreshReadouts();
   updateTargetLabel();
+  updateParamDisplay();
 })();
 </script>
 </body>
