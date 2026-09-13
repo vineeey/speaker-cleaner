@@ -750,23 +750,31 @@ body {
   }
 
   /* ── Audio engine (uses global ctx) ─────────────── */
-  function buildGraph(volume) {
+  function buildGraph(volume, panVal) {
     gainNode = ctx.createGain();
     gainNode.gain.value = (volume / 100) * MAX_GAIN;
+
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = panVal;
+
     analyser = ctx.createAnalyser();
     analyser.fftSize = 2048;
+
+    panner.connect(gainNode);
     gainNode.connect(analyser);
     analyser.connect(ctx.destination);
+    
+    return panner;
   }
 
-  function runStage(startHz, endHz, cycleSec, totalSec, waveType, volume) {
+  function runStage(startHz, endHz, cycleSec, totalSec, waveType, volume, panVal) {
     return new Promise((resolve) => {
       if (stageAbort) { resolve(); return; }
-      buildGraph(volume);
+      const pannerNode = buildGraph(volume, panVal);
 
       oscillator = ctx.createOscillator();
       oscillator.type = waveType;
-      oscillator.connect(gainNode);
+      oscillator.connect(pannerNode);
 
       // Use fresh currentTime — on iOS it may have advanced since ensureCtx()
       const base = ctx.currentTime + 0.05; // 50ms padding for iOS
@@ -823,9 +831,10 @@ body {
         _runBothStages(preset, totalSec, volume);
       } else {
         const p = preset[currentTarget];
+        const panVal = currentTarget === 'earpiece' ? -1 : 1;
         showProgress(totalSec);
         setStatus('Sweeping <span class="stage-label">' + RANGES[currentTarget].label + '</span>…', true);
-        runStage(p.start, p.end, p.cycle, totalSec, p.wave, volume).then(finishPlayback);
+        runStage(p.start, p.end, p.cycle, totalSec, p.wave, volume, panVal).then(finishPlayback);
       }
     }, 100);
   }
@@ -838,7 +847,7 @@ body {
     currentStage = 1;
     updateTargetLabel('Both (Stage 1 of 2 — Earpiece)');
     setStatus('<span class="stage-label">Stage 1 of 2: Earpiece</span> — sweeping…', true);
-    await runStage(pe.start, pe.end, pe.cycle, totalSec, pe.wave, volume);
+    await runStage(pe.start, pe.end, pe.cycle, totalSec, pe.wave, volume, -1);
     if (stageAbort) { finishPlayback(); return; }
 
     setStatus('Pause between stages…', true);
@@ -848,7 +857,7 @@ body {
     currentStage = 2;
     updateTargetLabel('Both (Stage 2 of 2 — Bottom Speaker)');
     setStatus('<span class="stage-label">Stage 2 of 2: Bottom Speaker</span> — sweeping…', true);
-    await runStage(pb.start, pb.end, pb.cycle, totalSec, pb.wave, volume);
+    await runStage(pb.start, pb.end, pb.cycle, totalSec, pb.wave, volume, 1);
 
     finishPlayback();
   }
@@ -933,6 +942,10 @@ body {
     const melody = MELODIES[target];
     testGain = c.createGain();
     testGain.gain.value = 1.0;
+    
+    const panner = c.createStereoPanner();
+    panner.pan.value = target === 'earpiece' ? -1 : 1;
+    panner.connect(testGain);
     testGain.connect(c.destination);
 
     const now = c.currentTime;
@@ -948,7 +961,7 @@ body {
         env.gain.linearRampToValueAtTime(0.6, t + 0.04);
         env.gain.setValueAtTime(0.6, t + note.dur * 0.7);
         env.gain.linearRampToValueAtTime(0, t + note.dur);
-        osc.connect(env); env.connect(testGain);
+        osc.connect(env); env.connect(panner);
         osc.start(t); osc.stop(t + note.dur + 0.01);
         testNodes.push(osc);
 
@@ -959,7 +972,7 @@ body {
         env2.gain.linearRampToValueAtTime(melody.harmonicGain, t + 0.05);
         env2.gain.setValueAtTime(melody.harmonicGain, t + note.dur * 0.6);
         env2.gain.linearRampToValueAtTime(0, t + note.dur);
-        osc2.connect(env2); env2.connect(testGain);
+        osc2.connect(env2); env2.connect(panner);
         osc2.start(t); osc2.stop(t + note.dur + 0.01);
         testNodes.push(osc2);
 
