@@ -287,7 +287,7 @@ body {
 @media (max-width: 480px) {
   html { font-size: 14px; }
   .section { padding: 16px 16px; }
-  .presets { grid-template-columns: 1fr; }
+  .presets { grid-template-columns: 1fr 1fr; }
   .param-grid { grid-template-columns: 1fr 1fr; }
   .test-grid { grid-template-columns: 1fr; }
 }
@@ -335,6 +335,10 @@ body {
       <button class="preset-btn" data-preset="deep" id="preset-deep">
         <span class="preset-icon">🔊</span>Deep Clean
         <span class="preset-sub">Full-range aggressive</span>
+      </button>
+      <button class="preset-btn" data-preset="shock" id="preset-shock" style="border-color: rgba(232,93,93,0.4);">
+        <span class="preset-icon">⚡</span>Shock / Gunk
+        <span class="preset-sub" style="color: var(--red);">Rapid heavy pulses</span>
       </button>
     </div>
   </div>
@@ -490,6 +494,10 @@ body {
       earpiece: { start: 300,  end: 8000,  cycle: 8,   wave: 'square' },
       bottom:   { start: 100,  end: 16000, cycle: 8,   wave: 'square' },
     },
+    shock: {
+      earpiece: { start: 400,  end: 3000,  cycle: 0.3, wave: 'square' },
+      bottom:   { start: 100,  end: 800,   cycle: 0.3, wave: 'square' },
+    },
   };
 
   /* ── State ──────────────────────────────────────── */
@@ -511,7 +519,7 @@ body {
   let testTimeout  = null;
   let testGain     = null;
 
-  const MAX_GAIN = 0.85;
+  const MAX_GAIN = 1.0;
 
   /* ──────────────────────────────────────────────────
      iOS AUDIO UNLOCK — three layers:
