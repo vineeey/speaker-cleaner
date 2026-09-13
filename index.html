@@ -468,17 +468,14 @@ body {
     water: {
       earpiece: { start: 300,  end: 500,   cycle: 3,   wave: 'sine' },
       bottom:   { start: 100,  end: 200,   cycle: 3,   wave: 'sine' },
-      desc: 'Rapid low-freq pulses push liquid out through speaker mesh',
     },
     dust: {
       earpiece: { start: 500,  end: 7000,  cycle: 5,   wave: 'triangle' },
       bottom:   { start: 200,  end: 12000, cycle: 5,   wave: 'triangle' },
-      desc: 'Wide sweep with sharp harmonics to dislodge fine particles',
     },
     deep: {
       earpiece: { start: 300,  end: 8000,  cycle: 8,   wave: 'square' },
       bottom:   { start: 100,  end: 16000, cycle: 8,   wave: 'square' },
-      desc: 'Full-range aggressive sweep with maximum harmonic content',
     },
   };
 
@@ -486,7 +483,6 @@ body {
   let currentTarget = 'bottom';
   let activePreset  = 'water';
   let isPlaying     = false;
-  let audioCtx      = null;
   let oscillator    = null;
   let gainNode      = null;
   let analyser      = null;
@@ -497,12 +493,64 @@ body {
   let playStartTime = 0;
   let progressInterval = null;
 
-  let testAudioCtx = null;
   let testNodes    = [];
   let testPlaying  = null;
   let testTimeout  = null;
+  let testGain     = null;
 
   const MAX_GAIN = 0.6;
+
+  /* ──────────────────────────────────────────────────
+     GLOBAL AUDIO CONTEXT — created once, unlocked on
+     first user gesture, never closed. This is the
+     correct pattern for mobile browsers (iOS Safari,
+     Chrome Android) which refuse to play audio from
+     a context that wasn't created/resumed inside a
+     synchronous user-gesture handler.
+     ────────────────────────────────────────────────── */
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let ctx = null;        // main cleaning context
+  let testCtx = null;    // speaker-test context
+
+  /**
+   * Ensure a context exists and is running.
+   * MUST be called synchronously from within a click/
+   * touchend handler — no awaits before this call.
+   */
+  function ensureCtx() {
+    if (!ctx || ctx.state === 'closed') {
+      ctx = new AudioCtx();
+    }
+    if (ctx.state === 'suspended') {
+      ctx.resume();  // fire-and-forget; already inside gesture
+    }
+    // Play a tiny silent buffer to unlock iOS audio
+    _unlockIfNeeded(ctx);
+    return ctx;
+  }
+
+  function ensureTestCtx() {
+    if (!testCtx || testCtx.state === 'closed') {
+      testCtx = new AudioCtx();
+    }
+    if (testCtx.state === 'suspended') {
+      testCtx.resume();
+    }
+    _unlockIfNeeded(testCtx);
+    return testCtx;
+  }
+
+  const _unlocked = new WeakSet();
+  function _unlockIfNeeded(c) {
+    if (_unlocked.has(c)) return;
+    _unlocked.add(c);
+    // Play 1 sample of silence — this is the iOS unlock trick
+    const buf = c.createBuffer(1, 1, c.sampleRate);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.connect(c.destination);
+    src.start(0);
+  }
 
   /* ── Helpers ────────────────────────────────────── */
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -637,19 +685,14 @@ body {
     readoutFreq.textContent = ''; readoutTime.textContent = '';
   }
 
-  /* ── Audio engine ───────────────────────────────── */
-  async function createAudioCtx() {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-  }
-
+  /* ── Audio engine (uses global ctx) ─────────────── */
   function buildGraph(volume) {
-    gainNode = audioCtx.createGain();
+    gainNode = ctx.createGain();
     gainNode.gain.value = (volume / 100) * MAX_GAIN;
-    analyser = audioCtx.createAnalyser();
+    analyser = ctx.createAnalyser();
     analyser.fftSize = 2048;
     gainNode.connect(analyser);
-    analyser.connect(audioCtx.destination);
+    analyser.connect(ctx.destination);
   }
 
   function runStage(startHz, endHz, cycleSec, totalSec, waveType, volume) {
@@ -657,11 +700,11 @@ body {
       if (stageAbort) { resolve(); return; }
       buildGraph(volume);
 
-      oscillator = audioCtx.createOscillator();
+      oscillator = ctx.createOscillator();
       oscillator.type = waveType;
       oscillator.connect(gainNode);
 
-      const now = audioCtx.currentTime;
+      const now = ctx.currentTime;
       let t = now;
       const repeatCount = Math.max(1, Math.ceil(totalSec / cycleSec));
 
@@ -689,12 +732,15 @@ body {
     });
   }
 
-  /* ── Playback ───────────────────────────────────── */
-  async function startPlayback() {
+  /* ── Playback (no async before ctx creation!) ───── */
+  function startPlayback() {
     if (isPlaying) return;
+
+    // ▸ Create / unlock context SYNCHRONOUSLY inside click handler
+    ensureCtx();
+
     stageAbort = false;
     setPlaying(true);
-    await createAudioCtx();
 
     const volume   = +sliderVolume.value;
     const totalSec = +sliderDuration.value;
@@ -703,32 +749,34 @@ body {
     startFreqReadout();
 
     if (currentTarget === 'both') {
-      const pe = preset.earpiece;
-      const pb = preset.bottom;
-      const combinedTotal = totalSec * 2 + 1.5;
-      showProgress(combinedTotal);
-
-      currentStage = 1;
-      updateTargetLabel('Both (Stage 1 of 2 — Earpiece)');
-      setStatus('<span class="stage-label">Stage 1 of 2: Earpiece</span> — sweeping…', true);
-      await runStage(pe.start, pe.end, pe.cycle, totalSec, pe.wave, volume);
-      if (stageAbort) { finishPlayback(); return; }
-
-      setStatus('Pause between stages…', true);
-      await new Promise(r => { sweepTimer = setTimeout(r, 1500); });
-      if (stageAbort) { finishPlayback(); return; }
-
-      currentStage = 2;
-      updateTargetLabel('Both (Stage 2 of 2 — Bottom Speaker)');
-      setStatus('<span class="stage-label">Stage 2 of 2: Bottom Speaker</span> — sweeping…', true);
-      await runStage(pb.start, pb.end, pb.cycle, totalSec, pb.wave, volume);
-
+      _runBothStages(preset, totalSec, volume);
     } else {
       const p = preset[currentTarget];
       showProgress(totalSec);
       setStatus('Sweeping <span class="stage-label">' + RANGES[currentTarget].label + '</span>…', true);
-      await runStage(p.start, p.end, p.cycle, totalSec, p.wave, volume);
+      runStage(p.start, p.end, p.cycle, totalSec, p.wave, volume).then(finishPlayback);
     }
+  }
+
+  async function _runBothStages(preset, totalSec, volume) {
+    const pe = preset.earpiece;
+    const pb = preset.bottom;
+    showProgress(totalSec * 2 + 1.5);
+
+    currentStage = 1;
+    updateTargetLabel('Both (Stage 1 of 2 — Earpiece)');
+    setStatus('<span class="stage-label">Stage 1 of 2: Earpiece</span> — sweeping…', true);
+    await runStage(pe.start, pe.end, pe.cycle, totalSec, pe.wave, volume);
+    if (stageAbort) { finishPlayback(); return; }
+
+    setStatus('Pause between stages…', true);
+    await new Promise(r => { sweepTimer = setTimeout(r, 1500); });
+    if (stageAbort) { finishPlayback(); return; }
+
+    currentStage = 2;
+    updateTargetLabel('Both (Stage 2 of 2 — Bottom Speaker)');
+    setStatus('<span class="stage-label">Stage 2 of 2: Bottom Speaker</span> — sweeping…', true);
+    await runStage(pb.start, pb.end, pb.cycle, totalSec, pb.wave, volume);
 
     finishPlayback();
   }
@@ -745,14 +793,14 @@ body {
     if (oscillator) { try { oscillator.stop(); } catch (_) {} try { oscillator.disconnect(); } catch (_) {} oscillator = null; }
     if (gainNode)   { try { gainNode.disconnect(); } catch (_) {} gainNode = null; }
     if (analyser)   { try { analyser.disconnect(); } catch (_) {} analyser = null; }
-    if (audioCtx)   { audioCtx.close().catch(() => {}); audioCtx = null; }
+    // Don't close ctx — keep it alive for next playback
     setPlaying(false);
     setStatus('Idle — select a mode and press Start', false);
     updateTargetLabel();
     currentStage = 0;
   }
 
-  /* ═══ Speaker Test ══════════════════════════════ */
+  /* ═══ Speaker Test (uses testCtx) ═══════════════ */
   const MELODIES = {
     earpiece: {
       notes: [
@@ -778,52 +826,54 @@ body {
     clearTimeout(testTimeout);
     testNodes.forEach(n => { try { n.stop(); } catch (_) {} try { n.disconnect(); } catch (_) {} });
     testNodes = [];
-    if (testAudioCtx) { testAudioCtx.close().catch(() => {}); testAudioCtx = null; }
+    if (testGain) { try { testGain.disconnect(); } catch (_) {} testGain = null; }
     testPlaying = null;
     testEarpiece.classList.remove('playing');
     testBottom.classList.remove('playing');
     testStopBtn.classList.remove('visible');
   }
 
-  async function playTestMelody(target) {
+  function playTestMelody(target) {
     if (testPlaying) stopTestAudio();
+
+    // ▸ Create / unlock context SYNCHRONOUSLY inside click handler
+    ensureTestCtx();
+
     testPlaying = target;
     (target === 'earpiece' ? testEarpiece : testBottom).classList.add('playing');
     testStopBtn.classList.add('visible');
 
-    testAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (testAudioCtx.state === 'suspended') await testAudioCtx.resume();
-
+    const c = testCtx;
     const melody = MELODIES[target];
-    const masterGain = testAudioCtx.createGain();
-    masterGain.gain.value = 0.35;
-    masterGain.connect(testAudioCtx.destination);
+    testGain = c.createGain();
+    testGain.gain.value = 0.35;
+    testGain.connect(c.destination);
 
-    const now = testAudioCtx.currentTime;
+    const now = c.currentTime;
     let t = now + 0.05;
     const gap = 0.08;
 
     for (let rep = 0; rep < 2; rep++) {
       for (const note of melody.notes) {
-        const osc = testAudioCtx.createOscillator();
+        const osc = c.createOscillator();
         osc.type = 'sine'; osc.frequency.value = note.hz;
-        const env = testAudioCtx.createGain();
+        const env = c.createGain();
         env.gain.setValueAtTime(0, t);
         env.gain.linearRampToValueAtTime(0.6, t + 0.04);
         env.gain.setValueAtTime(0.6, t + note.dur * 0.7);
         env.gain.linearRampToValueAtTime(0, t + note.dur);
-        osc.connect(env); env.connect(masterGain);
+        osc.connect(env); env.connect(testGain);
         osc.start(t); osc.stop(t + note.dur + 0.01);
         testNodes.push(osc);
 
-        const osc2 = testAudioCtx.createOscillator();
+        const osc2 = c.createOscillator();
         osc2.type = 'sine'; osc2.frequency.value = note.hz * melody.harmonicRatio;
-        const env2 = testAudioCtx.createGain();
+        const env2 = c.createGain();
         env2.gain.setValueAtTime(0, t);
         env2.gain.linearRampToValueAtTime(melody.harmonicGain, t + 0.05);
         env2.gain.setValueAtTime(melody.harmonicGain, t + note.dur * 0.6);
         env2.gain.linearRampToValueAtTime(0, t + note.dur);
-        osc2.connect(env2); env2.connect(masterGain);
+        osc2.connect(env2); env2.connect(testGain);
         osc2.start(t); osc2.stop(t + note.dur + 0.01);
         testNodes.push(osc2);
 
