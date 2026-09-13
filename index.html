@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Speaker Cleaner — play targeted sound patterns to vibrate dust, lint, or dried liquid out of your phone's speakers using the Web Audio API.">
+<title>Speaker Cleaner — Audio Sweep Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #10131A;
+  --panel:      #171B24;
+  --panel-alt:  #1C2130;
+  --border:     #262C3A;
+  --border-dim: #1E2333;
+  --text:       #D4D8E3;
+  --text-dim:   #7A8298;
+  --text-muted: #4A5068;
+  --teal:       #4DD9C4;
+  --teal-dim:   rgba(77,217,196,0.15);
+  --teal-glow:  rgba(77,217,196,0.35);
+  --amber:      #E8A33D;
+  --amber-dim:  rgba(232,163,61,0.12);
+  --red:        #E85D5D;
+  --radius:     8px;
+  --font-ui:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --transition: 180ms ease;
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 48px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ───────────────────────────────────────────── */
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+  max-width: 600px;
+}
+.header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #EEF0F6;
+  margin-bottom: 6px;
+}
+.header h1 span { color: var(--teal); }
+.header p {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── Main Panel ───────────────────────────────────────── */
+.panel {
+  width: 100%;
+  max-width: 560px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.section {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.section:last-child { border-bottom: none; }
+
+.section-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── Segmented Control (Speaker Target) ───────────────── */
+.segmented {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+.segmented button {
+  flex: 1;
+  padding: 9px 6px;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+.segmented button:hover { color: var(--text); }
+.segmented button.active {
+  background: var(--teal-dim);
+  color: var(--teal);
+  box-shadow: inset 0 0 0 1px rgba(77,217,196,0.25);
+}
+
+/* ── Preset Buttons ───────────────────────────────────── */
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.preset-btn {
+  padding: 12px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  line-height: 1.35;
+}
+.preset-btn:hover {
+  border-color: var(--teal);
+  color: var(--text);
+}
+.preset-btn.active {
+  background: var(--teal-dim);
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.preset-btn .preset-icon {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+/* ── Sliders / Controls ───────────────────────────────── */
+.control-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.control-row:last-child { margin-bottom: 0; }
+.control-label {
+  width: 110px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.control-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.control-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--teal);
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px rgba(77,217,196,0.3);
+  cursor: pointer;
+  transition: box-shadow var(--transition);
+}
+.control-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 6px var(--teal-glow), 0 0 0 1px var(--teal);
+}
+.control-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--teal);
+  border: 2px solid var(--panel);
+  cursor: pointer;
+}
+.control-value {
+  width: 72px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--teal);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+/* ── Waveform Select ──────────────────────────────────── */
+.wave-select {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  background: var(--panel-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+}
+.wave-select:focus { border-color: var(--teal); }
+
+/* ── Action Buttons ───────────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  letter-spacing: 0.01em;
+}
+.btn-start {
+  background: var(--teal);
+  color: var(--bg);
+}
+.btn-start:hover { background: #5EECD5; }
+.btn-start:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-stop {
+  background: var(--panel-alt);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.btn-stop:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+.btn-stop:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ── Status Bar ───────────────────────────────────────── */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  background: var(--bg);
+  border-top: 1px solid var(--border-dim);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+.status-dot.active {
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal-glow), 0 0 3px var(--teal);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 6px var(--teal-glow); }
+  50% { box-shadow: 0 0 14px var(--teal-glow), 0 0 4px var(--teal); }
+}
+.status-text {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  flex: 1;
+}
+.status-text .stage-label { color: var(--teal); font-weight: 600; }
+.status-readout {
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+.status-readout .freq-val { color: var(--teal); }
+.status-readout .time-val { color: var(--text-dim); }
+
+/* ── Target Label ─────────────────────────────────────── */
+.target-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px 22px;
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--bg);
+  letter-spacing: 0.03em;
+}
+.target-label .target-name { color: var(--teal); font-weight: 600; }
+
+/* ── Oscilloscope Canvas ──────────────────────────────── */
+.scope-wrap {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.scope-canvas {
+  width: 100%;
+  height: 100px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: block;
+}
+
+/* ── Safety Note ──────────────────────────────────────── */
+.safety {
+  margin-top: 20px;
+  max-width: 560px;
+  width: 100%;
+  padding: 16px 18px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(232,163,61,0.2);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius);
+}
+.safety-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--amber);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.safety p {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+.safety p:last-child { margin-bottom: 0; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .section { padding: 16px 16px; }
+  .control-label { width: 90px; }
+  .control-value { width: 60px; margin-left: 8px; }
+  .presets { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────── -->
+<div class="header">
+  <h1><span>◉</span> Speaker Cleaner</h1>
+  <p>Play targeted audio sweeps through your phone's speakers to vibrate out dust, lint, and dried liquid residue.</p>
+</div>
+
+<!-- ── Main Panel ──────────────────────────────────────── -->
+<div class="panel" id="mainPanel">
+
+  <!-- Speaker Target Selector -->
+  <div class="section">
+    <div class="section-label">Speaker Target</div>
+    <div class="segmented" id="speakerTarget">
+      <button data-target="earpiece" id="btn-earpiece">Earpiece</button>
+      <button data-target="bottom" class="active" id="btn-bottom">Bottom Speaker</button>
+      <button data-target="both" id="btn-both">Both</button>
+    </div>
+  </div>
+
+  <!-- Target Label -->
+  <div class="target-label" id="targetLabel">
+    Cleaning: <span class="target-name" id="targetName">Bottom Speaker</span>
+  </div>
+
+  <!-- Oscilloscope -->
+  <div class="scope-wrap">
+    <canvas class="scope-canvas" id="scopeCanvas"></canvas>
+  </div>
+
+  <!-- Presets -->
+  <div class="section">
+    <div class="section-label">Preset Patterns</div>
+    <div class="presets" id="presetGroup">
+      <button class="preset-btn" data-preset="water" id="preset-water">
+        <span class="preset-icon">💧</span>Water Eject
+      </button>
+      <button class="preset-btn" data-preset="dust" id="preset-dust">
+        <span class="preset-icon">🌬️</span>Dust &amp; Debris
+      </button>
+      <button class="preset-btn" data-preset="deep" id="preset-deep">
+        <span class="preset-icon">🔊</span>Deep Clean
+      </button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="section">
+    <div class="section-label">Sweep Parameters</div>
+
+    <div class="control-row">
+      <span class="control-label">Start Freq</span>
+      <input type="range" class="control-slider" id="sliderStartFreq" min="100" max="16000" value="100" step="10">
+      <span class="control-value" id="valStartFreq">100 Hz</span>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">End Freq</span>
+      <input type="range" class="control-slider" id="sliderEndFreq" min="100" max="16000" value="8000" step="10">
+      <span class="control-value" id="valEndFreq">8000 Hz</span>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">Cycle Length</span>
+      <input type="range" class="control-slider" id="sliderCycleLen" min="1" max="30" value="5" step="0.5">
+      <span class="control-value" id="valCycleLen">5.0 s</span>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">Repeat Count</span>
+      <input type="range" class="control-slider" id="sliderRepeat" min="1" max="20" value="3" step="1">
+      <span class="control-value" id="valRepeat">3×</span>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">Volume</span>
+      <input type="range" class="control-slider" id="sliderVolume" min="0" max="100" value="40" step="1">
+      <span class="control-value" id="valVolume">40%</span>
+    </div>
+
+    <div class="control-row">
+      <span class="control-label">Waveform</span>
+      <select class="wave-select" id="selectWave">
+        <option value="sine">Sine</option>
+        <option value="triangle">Triangle</option>
+        <option value="square">Square</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="section">
+    <div class="actions">
+      <button class="btn btn-start" id="btnStart">▶  Start Sweep</button>
+      <button class="btn btn-stop" id="btnStop" disabled>■  Stop</button>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">Idle — configure parameters and press Start</div>
+    <div class="status-readout">
+      <span class="freq-val" id="readoutFreq"></span>
+      <span class="time-val" id="readoutTime"></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Safety Note ─────────────────────────────────────── -->
+<div class="safety">
+  <div class="safety-title">⚠ Safety Notice</div>
+  <p>Start at <strong>low volume</strong> and increase gradually. Stop immediately if the sound distorts or the phone feels warm near the speaker.</p>
+  <p>This tool won't fix a genuinely damaged driver. If the problem persists after a few runs, your speaker likely needs proper cleaning or professional repair — not more sweeps.</p>
+</div>
+
+<!-- ── Script ──────────────────────────────────────────── -->
+<script>
+(function () {
+  'use strict';
+
+  /* ── DOM refs ──────────────────────────────────────── */
+  const $  = id => document.getElementById(id);
+
+  const targetBtns      = document.querySelectorAll('#speakerTarget button');
+  const presetBtns      = document.querySelectorAll('.preset-btn');
+  const sliderStartFreq = $('sliderStartFreq');
+  const sliderEndFreq   = $('sliderEndFreq');
+  const valStartFreq    = $('valStartFreq');
+  const valEndFreq      = $('valEndFreq');
+  const sliderCycleLen  = $('sliderCycleLen');
+  const valCycleLen     = $('valCycleLen');
+  const sliderRepeat    = $('sliderRepeat');
+  const valRepeat       = $('valRepeat');
+  const sliderVolume    = $('sliderVolume');
+  const valVolume       = $('valVolume');
+  const selectWave      = $('selectWave');
+  const btnStart        = $('btnStart');
+  const btnStop         = $('btnStop');
+  const statusDot       = $('statusDot');
+  const statusText      = $('statusText');
+  const readoutFreq     = $('readoutFreq');
+  const readoutTime     = $('readoutTime');
+  const targetLabel     = $('targetLabel');
+  const targetName      = $('targetName');
+  const scopeCanvas     = $('scopeCanvas');
+  const scopeCtx        = scopeCanvas.getContext('2d');
+
+  /* ── Speaker range definitions ─────────────────────── */
+  const RANGES = {
+    earpiece: { min: 300,  max: 8000,  label: 'Earpiece' },
+    bottom:   { min: 100,  max: 16000, label: 'Bottom Speaker' },
+  };
+
+  /* ── Preset definitions (target-aware) ─────────────── */
+  const PRESETS = {
+    water: {
+      earpiece: { start: 350, end: 400,  cycle: 4,  repeat: 5,  wave: 'sine' },
+      bottom:   { start: 100, end: 200,  cycle: 4,  repeat: 5,  wave: 'sine' },
+    },
+    dust: {
+      earpiece: { start: 1000, end: 6000, cycle: 6,  repeat: 3,  wave: 'triangle' },
+      bottom:   { start: 300,  end: 12000, cycle: 6,  repeat: 3,  wave: 'triangle' },
+    },
+    deep: {
+      earpiece: { start: 300,  end: 8000, cycle: 10, repeat: 4,  wave: 'square' },
+      bottom:   { start: 100,  end: 16000, cycle: 10, repeat: 4,  wave: 'square' },
+    },
+  };
+
+  /* ── State ─────────────────────────────────────────── */
+  let currentTarget = 'bottom';   // 'earpiece' | 'bottom' | 'both'
+  let activePreset  = null;
+  let isPlaying     = false;
+  let audioCtx      = null;
+  let oscillator    = null;
+  let gainNode      = null;
+  let analyser      = null;
+  let animFrame     = null;
+  let sweepTimer    = null;
+  let stageAbort    = false;      // flag used to stop "Both" mid-sequence
+  let currentStage  = 0;          // 0 or 1 when "both" is active
+  let playStartTime = 0;
+
+  const MAX_GAIN = 0.6;
+
+  /* ── Helpers ───────────────────────────────────────── */
+  function getRange(target) {
+    if (target === 'both') return null; // handled per-stage
+    return RANGES[target];
+  }
+
+  function activeRange() {
+    if (currentTarget === 'both') return RANGES.bottom; // widest for UI display
+    return RANGES[currentTarget];
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function fmtFreq(hz) {
+    return hz >= 1000 ? (hz / 1000).toFixed(1) + ' kHz' : hz + ' Hz';
+  }
+
+  /* ── UI updaters ───────────────────────────────────── */
+  function syncSliderRange() {
+    const r = activeRange();
+    sliderStartFreq.min = r.min;
+    sliderStartFreq.max = r.max;
+    sliderEndFreq.min   = r.min;
+    sliderEndFreq.max   = r.max;
+    // Re-clamp values
+    sliderStartFreq.value = clamp(+sliderStartFreq.value, r.min, r.max);
+    sliderEndFreq.value   = clamp(+sliderEndFreq.value,   r.min, r.max);
+    refreshReadouts();
+  }
+
+  function refreshReadouts() {
+    valStartFreq.textContent = fmtFreq(+sliderStartFreq.value);
+    valEndFreq.textContent   = fmtFreq(+sliderEndFreq.value);
+    valCycleLen.textContent  = (+sliderCycleLen.value).toFixed(1) + ' s';
+    valRepeat.textContent    = sliderRepeat.value + '×';
+    valVolume.textContent    = sliderVolume.value + '%';
+  }
+
+  function updateTargetLabel(extra) {
+    const map = { earpiece: 'Earpiece', bottom: 'Bottom Speaker', both: 'Both' };
+    targetName.textContent = extra || map[currentTarget];
+    targetLabel.innerHTML = 'Cleaning: <span class="target-name">' + targetName.textContent + '</span>';
+  }
+
+  function setStatus(text, active) {
+    statusText.innerHTML = text;
+    statusDot.classList.toggle('active', !!active);
+  }
+
+  function setPlaying(state) {
+    isPlaying = state;
+    btnStart.disabled = state;
+    btnStop.disabled  = !state;
+  }
+
+  /* ── Scope / Visualiser ────────────────────────────── */
+  function resizeCanvas() {
+    const rect = scopeCanvas.getBoundingClientRect();
+    scopeCanvas.width  = rect.width * window.devicePixelRatio;
+    scopeCanvas.height = rect.height * window.devicePixelRatio;
+    scopeCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function drawScope() {
+    const W = scopeCanvas.width / window.devicePixelRatio;
+    const H = scopeCanvas.height / window.devicePixelRatio;
+    scopeCtx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    scopeCtx.strokeStyle = 'rgba(38,44,58,0.6)';
+    scopeCtx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+      const y = (H / 4) * i;
+      scopeCtx.beginPath();
+      scopeCtx.moveTo(0, y);
+      scopeCtx.lineTo(W, y);
+      scopeCtx.stroke();
+    }
+    // Center line (brighter)
+    scopeCtx.strokeStyle = 'rgba(38,44,58,1)';
+    scopeCtx.beginPath();
+    scopeCtx.moveTo(0, H / 2);
+    scopeCtx.lineTo(W, H / 2);
+    scopeCtx.stroke();
+
+    if (!analyser) {
+      // Flat line
+      scopeCtx.strokeStyle = 'rgba(77,217,196,0.25)';
+      scopeCtx.lineWidth = 1.5;
+      scopeCtx.beginPath();
+      scopeCtx.moveTo(0, H / 2);
+      scopeCtx.lineTo(W, H / 2);
+      scopeCtx.stroke();
+      animFrame = requestAnimationFrame(drawScope);
+      return;
+    }
+
+    const bufLen = analyser.fftSize;
+    const data   = new Uint8Array(bufLen);
+    analyser.getByteTimeDomainData(data);
+
+    // Glow layer
+    scopeCtx.strokeStyle = 'rgba(77,217,196,0.18)';
+    scopeCtx.lineWidth = 5;
+    scopeCtx.beginPath();
+    for (let i = 0; i < bufLen; i++) {
+      const x = (i / bufLen) * W;
+      const y = (data[i] / 255) * H;
+      i === 0 ? scopeCtx.moveTo(x, y) : scopeCtx.lineTo(x, y);
+    }
+    scopeCtx.stroke();
+
+    // Main trace
+    scopeCtx.strokeStyle = '#4DD9C4';
+    scopeCtx.lineWidth = 1.8;
+    scopeCtx.beginPath();
+    for (let i = 0; i < bufLen; i++) {
+      const x = (i / bufLen) * W;
+      const y = (data[i] / 255) * H;
+      i === 0 ? scopeCtx.moveTo(x, y) : scopeCtx.lineTo(x, y);
+    }
+    scopeCtx.stroke();
+
+    animFrame = requestAnimationFrame(drawScope);
+  }
+  // Start idle scope drawing
+  animFrame = requestAnimationFrame(drawScope);
+
+  /* ── Live frequency readout (during playback) ──────── */
+  let freqReadoutInterval = null;
+
+  function startFreqReadout() {
+    playStartTime = performance.now();
+    freqReadoutInterval = setInterval(() => {
+      if (!oscillator || !isPlaying) return;
+      try {
+        const freq = oscillator.frequency.value;
+        readoutFreq.textContent = fmtFreq(Math.round(freq));
+      } catch (_) {
+        readoutFreq.textContent = '';
+      }
+      const elapsed = ((performance.now() - playStartTime) / 1000).toFixed(1);
+      readoutTime.textContent = '  ' + elapsed + 's';
+    }, 80);
+  }
+
+  function stopFreqReadout() {
+    clearInterval(freqReadoutInterval);
+    freqReadoutInterval = null;
+    readoutFreq.textContent = '';
+    readoutTime.textContent = '';
+  }
+
+  /* ── Audio engine ──────────────────────────────────── */
+  function createAudioCtx() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  function buildGraph(volume) {
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = (volume / 100) * MAX_GAIN;
+
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+
+    gainNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+  }
+
+  /**
+   * Runs one sweep stage.
+   * Returns a Promise that resolves when the stage finishes.
+   */
+  function runStage(startHz, endHz, cycleSec, repeatCount, waveType, volume) {
+    return new Promise((resolve) => {
+      if (stageAbort) { resolve(); return; }
+
+      buildGraph(volume);
+
+      oscillator = audioCtx.createOscillator();
+      oscillator.type = waveType;
+      oscillator.connect(gainNode);
+
+      const now = audioCtx.currentTime;
+      let t = now;
+
+      for (let i = 0; i < repeatCount; i++) {
+        const goingUp = (i % 2 === 0);
+        const fromHz  = goingUp ? startHz : endHz;
+        const toHz    = goingUp ? endHz   : startHz;
+        oscillator.frequency.setValueAtTime(fromHz, t);
+        oscillator.frequency.linearRampToValueAtTime(toHz, t + cycleSec);
+        t += cycleSec;
+      }
+
+      oscillator.start(now);
+      oscillator.stop(t);
+
+      oscillator.onended = () => {
+        try { oscillator.disconnect(); } catch (_) {}
+        try { gainNode.disconnect(); } catch (_) {}
+        try { analyser.disconnect(); } catch (_) {}
+        oscillator = null;
+        gainNode = null;
+        analyser = null;
+        resolve();
+      };
+    });
+  }
+
+  /* ── Playback orchestration ────────────────────────── */
+  async function startPlayback() {
+    if (isPlaying) return;
+    stageAbort = false;
+    setPlaying(true);
+
+    createAudioCtx();
+
+    const volume     = +sliderVolume.value;
+    const cycleSec   = +sliderCycleLen.value;
+    const repeatN    = +sliderRepeat.value;
+    const waveType   = selectWave.value;
+
+    startFreqReadout();
+
+    if (currentTarget === 'both') {
+      // ── Stage 1: Earpiece ──
+      const re = RANGES.earpiece;
+      const rb = RANGES.bottom;
+
+      let s1Start, s1End, s2Start, s2End;
+
+      // If a preset is active, use its per-target values; else use slider values clamped per range
+      if (activePreset && PRESETS[activePreset]) {
+        const pe = PRESETS[activePreset].earpiece;
+        const pb = PRESETS[activePreset].bottom;
+        s1Start = pe.start; s1End = pe.end;
+        s2Start = pb.start; s2End = pb.end;
+      } else {
+        s1Start = clamp(+sliderStartFreq.value, re.min, re.max);
+        s1End   = clamp(+sliderEndFreq.value,   re.min, re.max);
+        s2Start = clamp(+sliderStartFreq.value, rb.min, rb.max);
+        s2End   = clamp(+sliderEndFreq.value,   rb.min, rb.max);
+      }
+
+      currentStage = 1;
+      updateTargetLabel('Both (Stage 1 of 2 — Earpiece)');
+      setStatus('<span class="stage-label">Stage 1 of 2: Earpiece</span> — sweeping…', true);
+
+      await runStage(s1Start, s1End, cycleSec, repeatN, waveType, volume);
+      if (stageAbort) { finishPlayback(); return; }
+
+      // Pause between stages
+      setStatus('Pause between stages…', true);
+      await new Promise(r => { sweepTimer = setTimeout(r, 1500); });
+      if (stageAbort) { finishPlayback(); return; }
+
+      // ── Stage 2: Bottom Speaker ──
+      currentStage = 2;
+      updateTargetLabel('Both (Stage 2 of 2 — Bottom Speaker)');
+      setStatus('<span class="stage-label">Stage 2 of 2: Bottom Speaker</span> — sweeping…', true);
+
+      await runStage(s2Start, s2End, cycleSec, repeatN, waveType, volume);
+
+    } else {
+      // Single-target sweep
+      const startHz = +sliderStartFreq.value;
+      const endHz   = +sliderEndFreq.value;
+
+      const label = RANGES[currentTarget].label;
+      setStatus('Sweeping <span class="stage-label">' + label + '</span>…', true);
+
+      await runStage(startHz, endHz, cycleSec, repeatN, waveType, volume);
+    }
+
+    finishPlayback();
+  }
+
+  function stopPlayback() {
+    stageAbort = true;
+    clearTimeout(sweepTimer);
+    if (oscillator) {
+      try { oscillator.stop(); } catch (_) {}
+    }
+    // onended handler will clean up nodes; finishPlayback is called from there or from start
+  }
+
+  function finishPlayback() {
+    stopFreqReadout();
+
+    // Ensure nodes are cleaned up
+    try { if (oscillator) { oscillator.stop(); oscillator.disconnect(); } } catch (_) {}
+    try { if (gainNode)   gainNode.disconnect(); } catch (_) {}
+    try { if (analyser)   analyser.disconnect(); } catch (_) {}
+    oscillator = null;
+    gainNode = null;
+    analyser = null;
+
+    if (audioCtx) {
+      audioCtx.close().catch(() => {});
+      audioCtx = null;
+    }
+
+    setPlaying(false);
+    setStatus('Idle — configure parameters and press Start', false);
+    updateTargetLabel();
+    currentStage = 0;
+  }
+
+  /* ── Event wiring ──────────────────────────────────── */
+
+  // Speaker target selector
+  targetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (isPlaying) return; // don't change while running
+      targetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTarget = btn.dataset.target;
+      syncSliderRange();
+      updateTargetLabel();
+      // Re-apply preset if one is active
+      if (activePreset) applyPreset(activePreset);
+    });
+  });
+
+  // Presets
+  function applyPreset(name) {
+    if (isPlaying) return;
+    activePreset = name;
+    presetBtns.forEach(b => b.classList.toggle('active', b.dataset.preset === name));
+
+    // Determine which target's preset data to display on sliders
+    const tgt = currentTarget === 'both' ? 'bottom' : currentTarget;
+    const p = PRESETS[name][tgt];
+    const r = RANGES[tgt];
+
+    sliderStartFreq.value = clamp(p.start, r.min, r.max);
+    sliderEndFreq.value   = clamp(p.end,   r.min, r.max);
+    sliderCycleLen.value  = p.cycle;
+    sliderRepeat.value    = p.repeat;
+    selectWave.value      = p.wave;
+    refreshReadouts();
+  }
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+  });
+
+  // Sliders
+  [sliderStartFreq, sliderEndFreq, sliderCycleLen, sliderRepeat, sliderVolume].forEach(s => {
+    s.addEventListener('input', () => {
+      // If user manually changes sliders, de-select preset
+      if (document.activeElement === s) {
+        activePreset = null;
+        presetBtns.forEach(b => b.classList.remove('active'));
+      }
+      refreshReadouts();
+
+      // Live volume adjustment during playback
+      if (s === sliderVolume && gainNode) {
+        gainNode.gain.value = (+sliderVolume.value / 100) * MAX_GAIN;
+      }
+    });
+  });
+
+  // Waveform select change clears preset
+  selectWave.addEventListener('change', () => {
+    activePreset = null;
+    presetBtns.forEach(b => b.classList.remove('active'));
+  });
+
+  // Start / Stop buttons
+  btnStart.addEventListener('click', startPlayback);
+  btnStop.addEventListener('click', stopPlayback);
+
+  /* ── Init ──────────────────────────────────────────── */
+  syncSliderRange();
+  refreshReadouts();
+  updateTargetLabel();
+})();
+</script>
+</body>
+</html>
