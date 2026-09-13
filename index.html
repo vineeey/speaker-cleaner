@@ -360,8 +360,8 @@ body {
     </div>
     <div class="control-row">
       <span class="control-label">Volume</span>
-      <input type="range" class="control-slider" id="sliderVolume" min="0" max="100" value="40" step="1">
-      <span class="control-value" id="valVolume">40%</span>
+      <input type="range" class="control-slider" id="sliderVolume" min="0" max="100" value="70" step="1">
+      <span class="control-value" id="valVolume">70%</span>
     </div>
   </div>
 
@@ -422,7 +422,13 @@ body {
   <div class="safety-title">⚠ Safety Notice</div>
   <p>Start at <strong>low volume</strong> and increase gradually. Stop immediately if the sound distorts or the phone feels warm near the speaker.</p>
   <p>This tool won't fix a genuinely damaged driver. If the problem persists after a few runs, your speaker likely needs proper cleaning or professional repair — not more sweeps.</p>
+  <p><strong>iPhone users:</strong> Make sure the silent mode switch (left side of phone) is OFF (no orange showing), and turn up your media volume.</p>
 </div>
+
+<!-- Silent MP3 to force iOS into 'playback' audio session (bypasses mute switch) -->
+<audio id="iosUnlockAudio" preload="auto"
+  src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqSAAAAAAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqSAAAAAAAAAAAAAAAAAAAA"
+  style="display:none"></audio>
 
 <script>
 (function () {
@@ -498,29 +504,42 @@ body {
   let testTimeout  = null;
   let testGain     = null;
 
-  const MAX_GAIN = 0.6;
+  const MAX_GAIN = 0.85;
 
   /* ──────────────────────────────────────────────────
-     GLOBAL AUDIO CONTEXT — iOS Safari requires:
-     1. AudioContext created inside a user gesture
-     2. An OscillatorNode.start() call in that gesture
-     3. resume() called in that gesture
-     Only after all three does iOS allow audio output.
-     We pre-unlock on the FIRST touch/click anywhere
-     on the page so the context is ready when the user
-     hits "Start Cleaning".
+     iOS AUDIO UNLOCK — three layers:
+     1. Play hidden <audio> MP3 element on first touch
+        → forces iOS into "playback" audio session
+        → bypasses the hardware mute switch
+     2. Create AudioContext + play silent oscillator
+        inside user gesture
+     3. resume() the context inside user gesture
      ────────────────────────────────────────────────── */
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   let ctx = null;
   let testCtx = null;
   let ctxReady = false;
   let testCtxReady = false;
+  let iosAudioPlayed = false;
 
-  /** Unlock a context by playing a silent oscillator */
+  const iosAudio = $('iosUnlockAudio');
+
+  /** Play the hidden <audio> MP3 to unlock iOS audio session */
+  function _unlockiOS() {
+    if (iosAudioPlayed) return;
+    iosAudioPlayed = true;
+    if (iosAudio) {
+      iosAudio.volume = 0.01;
+      var p = iosAudio.play();
+      if (p && p.catch) p.catch(function(){});
+    }
+  }
+
+  /** Unlock a Web Audio context by playing a silent oscillator */
   function _unlock(c) {
-    const o = c.createOscillator();
-    const g = c.createGain();
-    g.gain.value = 0;          // silent
+    var o = c.createOscillator();
+    var g = c.createGain();
+    g.gain.value = 0;
     o.connect(g);
     g.connect(c.destination);
     o.start(0);
@@ -528,11 +547,12 @@ body {
   }
 
   function ensureCtx() {
+    _unlockiOS();  // always try iOS <audio> unlock first
     if (!ctx || ctx.state === 'closed') {
       ctx = new AudioCtx();
       ctxReady = false;
     }
-    ctx.resume();  // always call inside gesture
+    ctx.resume();
     if (!ctxReady) {
       _unlock(ctx);
       ctxReady = true;
@@ -541,6 +561,7 @@ body {
   }
 
   function ensureTestCtx() {
+    _unlockiOS();
     if (!testCtx || testCtx.state === 'closed') {
       testCtx = new AudioCtx();
       testCtxReady = false;
@@ -553,14 +574,13 @@ body {
     return testCtx;
   }
 
-  /* Pre-unlock on ANY first user interaction so the
-     context is fully running by the time they press
-     "Start Cleaning". Covers touch AND mouse. */
+  /* Pre-unlock on ANY first user interaction */
   function _preUnlock() {
+    _unlockiOS();
     ensureCtx();
     ensureTestCtx();
   }
-  ['touchstart', 'touchend', 'mousedown', 'click'].forEach(evt => {
+  ['touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach(function(evt) {
     document.addEventListener(evt, _preUnlock, { once: true, passive: true });
   });
 
