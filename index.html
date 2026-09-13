@@ -204,6 +204,10 @@ body {
   letter-spacing: 0.03em;
 }
 .target-label .target-name { color: var(--teal); font-weight: 600; }
+.target-note {
+  font-family: var(--font-ui); font-size: 0.65rem; color: rgba(122,130,152,0.6);
+  margin-top: 4px; letter-spacing: 0; text-transform: none;
+}
 
 /* ── Oscilloscope ─────────────────────────────────── */
 .scope-wrap { padding: 16px 22px; border-bottom: 1px solid var(--border-dim); }
@@ -308,7 +312,10 @@ body {
     </div>
   </div>
 
-  <div class="target-label" id="targetLabel">Cleaning: <span class="target-name" id="targetName">Bottom Speaker</span></div>
+  <div class="target-label" id="targetLabel">
+    Cleaning: <span class="target-name" id="targetName">Bottom Speaker</span>
+    <div class="target-note">Audio routes automatically; frequencies tuned for target</div>
+  </div>
 
   <div class="scope-wrap">
     <canvas class="scope-canvas" id="scopeCanvas"></canvas>
@@ -606,7 +613,7 @@ body {
   function updateTargetLabel(extra) {
     const map = { earpiece: 'Earpiece', bottom: 'Bottom Speaker', both: 'Both' };
     const txt = extra || map[currentTarget];
-    targetLabel.innerHTML = 'Cleaning: <span class="target-name">' + txt + '</span>';
+    targetLabel.innerHTML = 'Cleaning: <span class="target-name">' + txt + '</span><div class="target-note">Audio routes automatically; frequencies tuned for target</div>';
   }
 
   function setStatus(text, active) {
